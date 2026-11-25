@@ -27,7 +27,7 @@ import coremltools.optimize as cto
 
 VARIANTS = {
     "ESRGANGeneral": ["fp16"],
-    "NAFNetDeblur": ["fp16", "int8", "fp32"],  # fp32 = diagnostic only, never shipped
+    "NAFNetDeblur": ["fp16", "int8"],
     "DDColorTiny": ["fp16", "int8"],
 }
 
@@ -238,6 +238,18 @@ def main():
             if MODELS[name]["output"] == "image":
                 Image.fromarray(np.clip(np.rint(refs[wi].transpose(1, 2, 0)), 0, 255).astype(np.uint8)).save(os.path.join(ddir, f"{name}_{v}_torch.png"))
                 Image.fromarray(outs[wi]).save(os.path.join(ddir, f"{name}_{v}_coreml.png"))
+            # the same check on the GPU path (fp16 arithmetic like iPhone GPU/ANE; the macOS CPU path
+            # may compute in fp32 and hide fp16 overflow)
+            try:
+                ml_gpu = ct.models.MLModel(path, compute_units=ct.ComputeUnit.CPU_AND_GPU)
+                outs_gpu = [ml_out(ml_gpu, name, t) for t in tiles]
+                item["vs_torch_fp32_cpu_and_gpu"] = mean_stats([compare(name, r, o, t[0]) for r, o, t in zip(refs, outs_gpu, tiles)])
+                if MODELS[name]["output"] == "ab":
+                    item["mean_abs_ab_torch"] = float(np.mean([np.abs(r).mean() for r in refs]))
+                    item["mean_abs_ab_cpu"] = float(np.mean([np.abs(o).mean() for o in outs]))
+                    item["mean_abs_ab_cpu_and_gpu"] = float(np.mean([np.abs(o).mean() for o in outs_gpu]))
+            except Exception as e:
+                item["vs_torch_fp32_cpu_and_gpu"] = {"error": str(e)[:300]}
             if v == "fp16":
                 outs16 = outs
             else:

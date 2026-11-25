@@ -83,9 +83,54 @@ def _matmul_color_decoder_forward(self, x, img_features):
     return out.reshape(b, -1, h, w)
 
 
+def safe_layer_norm(x, dim, weight, bias, eps):
+    """Exact layer norm that stays inside float16 range.
+
+    DDColor activations reach ~1600 (ConvNeXt stage 3) and ~760 (decoder FFN), so the plain
+    (x - mu)^2 overflows fp16 (max 65504) on fp16 CPU/GPU/ANE paths (seen as grey output in the
+    iOS Simulator). Normalising by the per-position max |x - mu| first is mathematically identical:
+      d / sqrt(mean(d^2) + eps) == d' / sqrt(mean(d'^2) + (sqrt(eps)/m)^2),  d' = d / m
+    Means are taken as sums of pre-scaled terms so no partial sum can overflow either."""
+    c = x.shape[dim]
+    mu = (x * (1.0 / c)).sum(dim, keepdim=True)
+    d = x - mu
+    r = eps ** 0.5
+    m = torch.clamp(d.abs().amax(dim=dim, keepdim=True), min=r)
+    dn = d / m
+    var = (dn * dn * (1.0 / c)).sum(dim, keepdim=True)
+    e = (r / m) * (r / m)
+    y = dn / torch.sqrt(var + e)
+    shape = [1] * x.dim()
+    shape[dim] = c
+    return y * weight.reshape(shape) + bias.reshape(shape)
+
+
+def _safe_ln_forward(dim):
+    def forward(self, x):
+        d = dim if dim >= 0 else x.dim() + dim
+        return safe_layer_norm(x, d, self.weight, self.bias, self.eps)
+    return forward
+
+
+def _replace_layer_norms(model):
+    """Patch forward IN PLACE (module objects must survive: DDColor's encoder feature hooks are
+    registered on the ConvNeXt norm modules)."""
+    n = 0
+    for m in model.modules():
+        if isinstance(m, nn.LayerNorm):
+            m.forward = types.MethodType(_safe_ln_forward(-1), m)
+            n += 1
+        elif m.__class__.__name__ == "LayerNorm" and hasattr(m, "data_format"):
+            m.forward = types.MethodType(_safe_ln_forward(1 if m.data_format == "channels_first" else -1), m)
+            n += 1
+    return n
+
+
 def make_convertible(model):
-    """Return the same model, spectral norm folded and einsum replaced (in place)."""
+    """Return the same model, spectral norm folded, einsum replaced and every LayerNorm made
+    fp16-safe (in place). Same math as upstream (verified against the unmodified forward)."""
     _fold_spectral_norm(model)
+    model._safe_ln_count = _replace_layer_norms(model)
     dec = model.decoder.color_decoder
     dec.forward = types.MethodType(_matmul_color_decoder_forward, dec)
     return model
