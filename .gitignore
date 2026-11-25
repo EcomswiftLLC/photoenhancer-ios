@@ -10,3 +10,4 @@ build/
 .swiftpm/
 Package.resolved
 design/_scratch/
+ci/

@@ -35,7 +35,7 @@ SLIDES = [
     ("compare", ["See every", "detail change."], "Drag to compare. Pinch to zoom both sides."),
     ("unblur", ["Reduce blur", "and shake."], "Unblur and Sharpen for soft or shaky shots."),
     ("restore", ["Bring back", "faded prints."], "Reduce scratches, dust, fading and yellowing."),
-    ("colorize", ["Add colour to", "black and white."], "Natural-looking colour, full resolution kept."),
+    ("colorize", ["Add colour to", "black and white."], "An estimated colour, full resolution kept."),
     ("portrait", ["Clearer faces,", "never new ones."], "Sharpens the faces it finds and blends them back."),
     ("batch", ["Enhance many", "photos at once."], "Same settings for all, one ad for the batch."),
     ("export", ["JPG, PNG or HEIC,", "up to 8x."], "Keep or remove location data. No watermark."),
