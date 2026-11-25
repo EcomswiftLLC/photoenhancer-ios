@@ -16,6 +16,8 @@ final class Enhancer: @unchecked Sendable {
     static var colorizeABScale: Float = 1
     /// What the last colorize run read from the model (type, shape, value ranges), for the quality report.
     static var lastColorizeDiagnostics = ""
+    /// The exact model input of the last colorize run (quality report only).
+    static var lastColorizeInput: CGImage?
     /// Mean |a| + |b| below this means the colorize model produced no usable colour.
     static let minimumColorizeChroma: Float = 1.0
 
@@ -230,7 +232,9 @@ final class Enhancer: @unchecked Sendable {
         guard let spec = ModelSpec(model: model) else { throw EnhanceError.modelFailed("Unexpected colorize model") }
         try cancel.check()
         // The whole photo stretched to the model's input size; the model converts it to grey (L*) itself.
-        let small = image.resized(width: spec.inputWidth, height: spec.inputHeight)
+        var small = image.resized(width: spec.inputWidth, height: spec.inputHeight)
+        small.makeOpaque()
+        Self.lastColorizeInput = ModelRunner.standardImage(small)
         let input = try ModelRunner.inputValue(for: model, spec: spec, tile: small)
         let provider = try MLDictionaryFeatureProvider(dictionary: [spec.inputName: input])
         let result = try await model.prediction(from: provider)

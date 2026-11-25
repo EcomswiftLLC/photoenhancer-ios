@@ -75,7 +75,10 @@ final class QualityPerformanceTests: XCTestCase {
                 row["baselineFootprintMB"] = Int(baseline / 1_048_576)
                 row["capApplied"] = output.notes.capApplied
                 if let faces = output.notes.facesFound { row["faces"] = faces }
-                if item.operations.contains(.colorize) { row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics }
+                if item.operations.contains(.colorize) {
+                    row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics
+                    if let fed = Enhancer.lastColorizeInput { try? writePNG(fed, name: "\(item.name)-model-input.png") }
+                }
                 if !output.notes.messages.isEmpty { row["notes"] = output.notes.messages }
                 try writePNG(input, name: "\(item.name)-before.png")
                 try writePNG(output.image, name: "\(item.name)-after.png")
@@ -86,6 +89,7 @@ final class QualityPerformanceTests: XCTestCase {
                 row["status"] = "no colour from the model"
                 row["seconds"] = (Date().timeIntervalSince(started) * 100).rounded() / 100
                 row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics
+                if let fed = Enhancer.lastColorizeInput { try? writePNG(fed, name: "\(item.name)-model-input.png") }
             } catch {
                 _ = sampler.stop()
                 row["status"] = "failed: \(error)"

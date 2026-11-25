@@ -113,7 +113,7 @@ enum ModelRunner {
     static func inputValue(for model: MLModel, spec: ModelSpec, tile: RGBAImage) throws -> MLFeatureValue {
         let description = model.modelDescription.inputDescriptionsByName[spec.inputName]
         if let constraint = description?.imageConstraint {
-            guard let cg = tile.makeCGImage() else { throw EnhanceError.modelFailed("Tile image") }
+            guard let cg = standardImage(tile) else { throw EnhanceError.modelFailed("Tile image") }
             return try MLFeatureValue(cgImage: cg, constraint: constraint, options: nil)
         }
         let array = try MLMultiArray(shape: [1, 3, NSNumber(value: tile.height), NSNumber(value: tile.width)], dataType: .float32)
@@ -127,6 +127,18 @@ enum ModelRunner {
             }
         }
         return MLFeatureValue(multiArray: array)
+    }
+
+    /// The pixels as a plain 8-bit sRGB RGBA bitmap made by a CGContext (default byte order), the format Core ML's image
+    /// conversion is known to read correctly. Data-provider images with other byte orders are not handed to a model.
+    static func standardImage(_ image: RGBAImage) -> CGImage? {
+        guard let source = image.makeCGImage(),
+              let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        context.interpolationQuality = .none
+        context.draw(source, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        return context.makeImage()
     }
 
     /// Reads a model's output pixel buffer (BGRA, RGBA, ARGB or one-channel grey) as RGBA.
