@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Clarivo"><title>Clarivo</title>
+<defs>
+<clipPath id="cvT"><rect x="19.0" y="19.0" width="62.0" height="62.0" rx="11.5"/></clipPath>
+<clipPath id="cvLo"><path d="M19.0 19.0 L81.0 81.0 L19.0 81.0 Z"/></clipPath>
+<linearGradient id="cvSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#122E46"/><stop offset=".55" stop-color="#287484"/><stop offset="1" stop-color="#8FDCD0"/></linearGradient>
+</defs>
+<rect width="100" height="100" rx="22.4" fill="#081219"/>
+<g clip-path="url(#cvT)">
+<rect x="19.0" y="19.0" width="62.0" height="62.0" fill="url(#cvSky)"/>
+<circle cx="62.4" cy="39.5" r="5.3" fill="#CFF7F1"/>
+<path d="M19.0 60 C30 52 36 50 44 54 S58 46 64 49 S76 54 81.0 52 L81.0 81.0 L19.0 81.0 Z" fill="#224E60"/>
+<path d="M19.0 66 C34 64 44 58 54 60 S70 66 81.0 63 L81.0 81.0 L19.0 81.0 Z" fill="#0C2230"/>
+<rect x="19.0" y="19.0" width="62.0" height="62.0" fill="#081219" clip-path="url(#cvLo)"/>
+<g clip-path="url(#cvLo)"><rect x="19.35" y="19.35" width="9.63" height="9.63" fill="#1E4A60"/><rect x="19.35" y="29.68" width="9.63" height="9.63" fill="#2A6878"/><rect x="29.68" y="29.68" width="9.63" height="9.63" fill="#2A6878"/><rect x="19.35" y="40.02" width="9.63" height="9.63" fill="#2E6E7C"/><rect x="29.68" y="40.02" width="9.63" height="9.63" fill="#2E6E7C"/><rect x="40.02" y="40.02" width="9.63" height="9.63" fill="#2E6E7C"/><rect x="19.35" y="50.35" width="9.63" height="9.63" fill="#24505E"/><rect x="29.68" y="50.35" width="9.63" height="9.63" fill="#24505E"/><rect x="40.02" y="50.35" width="9.63" height="9.63" fill="#24505E"/><rect x="50.35" y="50.35" width="9.63" height="9.63" fill="#24505E"/><rect x="19.35" y="60.68" width="9.63" height="9.63" fill="#163442"/><rect x="29.68" y="60.68" width="9.63" height="9.63" fill="#163442"/><rect x="40.02" y="60.68" width="9.63" height="9.63" fill="#163442"/><rect x="50.35" y="60.68" width="9.63" height="9.63" fill="#163442"/><rect x="60.68" y="60.68" width="9.63" height="9.63" fill="#163442"/><rect x="19.35" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/><rect x="29.68" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/><rect x="40.02" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/><rect x="50.35" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/><rect x="60.68" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/><rect x="71.02" y="71.02" width="9.63" height="9.63" fill="#2A5F6C"/></g>
+<path d="M21.0 21.0 L79.0 79.0" stroke="#7FE6D7" stroke-opacity=".35" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M21.0 21.0 L79.0 79.0" stroke="#CFF7F1" stroke-width="1.1" stroke-linecap="round"/>
+</g>
+<rect x="19.3" y="19.3" width="61.4" height="61.4" rx="11.5" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width=".6"/>
+<path d="M76 13 H87 V24" fill="none" stroke="#7FE6D7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13 76 V87 H24" fill="none" stroke="#345C68" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
