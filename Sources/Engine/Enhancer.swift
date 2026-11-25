@@ -239,6 +239,8 @@ final class Enhancer: @unchecked Sendable {
             let b = try ModelRunner.plane(array, channel: 1)
             Self.lastColorizeDiagnostics = "type \(array.dataType.rawValue) shape \(array.shape) strides \(array.strides) "
                 + "a[\(a.values.min() ?? 0), \(a.values.max() ?? 0)] b[\(b.values.min() ?? 0), \(b.values.max() ?? 0)] "
+                + "mean|a| \(a.values.reduce(0) { $0 + abs($1) } / Float(max(1, a.values.count))) "
+                + "mean|b| \(b.values.reduce(0) { $0 + abs($1) } / Float(max(1, b.values.count))) "
                 + "pixelBuffer \(array.pixelBuffer != nil)"
             let scale = Self.colorizeABScale
             return LabColor.merge(

@@ -238,14 +238,16 @@ enum ModelRunner {
     static func plane(_ array: MLMultiArray, channel: Int) throws -> (width: Int, height: Int, values: [Float]) {
         let shape = array.shape.map { $0.intValue }
         guard shape.count >= 3 else { throw EnhanceError.modelFailed("Shape \(shape)") }
-        let height = shape[shape.count - 2], width = shape[shape.count - 1]
-        let strides = array.strides.map { $0.intValue }
-        let cs = strides[strides.count - 3], hs = strides[strides.count - 2], ws = strides[strides.count - 1]
-        var values = [Float](repeating: 0, count: width * height)
-        let base = channel * cs
-        try withElements(array) { read in
-            for y in 0..<height { for x in 0..<width { values[y * width + x] = read(base + y * hs + x * ws) } }
-        }
+        let height = shape[shape.count - 2], width = shape[shape.count - 1], channels = shape[shape.count - 3]
+        guard channel < channels, width > 0, height > 0 else { throw EnhanceError.modelFailed("Shape \(shape)") }
+        // Core ML converts from whatever storage it used (Float16, pixel-buffer backed, padded strides) to plain
+        // row-major Float32 scalars, so the index below is simply c * H * W + y * W + x.
+        let shaped = MLShapedArray<Float>(converting: array)
+        let scalars = shaped.scalars
+        let planeSize = width * height
+        let start = channel * planeSize
+        guard scalars.count >= start + planeSize else { throw EnhanceError.modelFailed("Short array") }
+        let values = Array(scalars[start..<(start + planeSize)])
         return (width, height, values)
     }
 }
