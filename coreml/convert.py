@@ -27,12 +27,12 @@ import coremltools.optimize as cto
 
 VARIANTS = {
     "ESRGANGeneral": ["fp16"],
-    "NAFNetDeblur": ["fp16", "int8"],
+    "NAFNetDeblur": ["fp16", "int8", "fp32"],  # fp32 = diagnostic only, never shipped
     "DDColorTiny": ["fp16", "int8"],
 }
 
 
-def convert(name, wrapper, example):
+def convert(name, wrapper, example, precision=None):
     spec = MODELS[name]
     with torch.no_grad():
         traced = torch.jit.trace(wrapper, example)
@@ -43,7 +43,7 @@ def convert(name, wrapper, example):
     else:
         outputs = [ct.TensorType(name="ab", dtype=np.float16)]
     ml = ct.convert(traced, inputs=inputs, outputs=outputs, convert_to="mlprogram",
-                    compute_precision=ct.precision.FLOAT16,
+                    compute_precision=precision or ct.precision.FLOAT16,
                     minimum_deployment_target=ct.target.iOS17)
     ml.author = "Converted for Clarivo from " + spec["source"]
     ml.license = spec["licence"]
@@ -184,14 +184,29 @@ def main():
         entry = {"variants": {}}
         outs16 = None
         for v in VARIANTS[name]:
-            ml = ml16 if v == "fp16" else quantize_int8(ml16)
-            path = os.path.join(mdir, f"{name}{'' if v == 'fp16' else '-int8'}.mlpackage")
+            if v == "fp16":
+                ml = ml16
+            elif v == "int8":
+                ml = quantize_int8(ml16)
+            else:
+                ml = convert(name, wrapper, example, ct.precision.FLOAT32)
+            path = os.path.join(mdir, f"{name}{'' if v == 'fp16' else '-' + v}.mlpackage")
             ml.save(path)
             ml_loaded = ct.models.MLModel(path, compute_units=ct.ComputeUnit.CPU_ONLY)
             outs = [ml_out(ml_loaded, name, t) for t in tiles]
-            vs_torch = mean_stats([compare(name, r, o, t) for r, o, t in zip(refs, outs, tiles)])
+            per_tile = [compare(name, r, o, t) for r, o, t in zip(refs, outs, tiles)]
+            vs_torch = mean_stats(per_tile)
             item = {"path": path, "size_bytes": dir_size(path), "n_test_inputs": len(tiles),
-                    "vs_torch_fp32_cpu": vs_torch}
+                    "vs_torch_fp32_cpu": vs_torch, "per_tile": per_tile}
+            # dump the worst tile (input, torch, core ml) for visual debugging
+            key = [k for k in per_tile[0] if k.startswith("psnr")][0]
+            wi = int(np.argmin([d[key] for d in per_tile]))
+            ddir = os.path.join(rdir, "worst_tiles")
+            os.makedirs(ddir, exist_ok=True)
+            Image.fromarray(tiles[wi]).save(os.path.join(ddir, f"{name}_{v}_in.png"))
+            if MODELS[name]["output"] == "image":
+                Image.fromarray(np.clip(np.rint(refs[wi].transpose(1, 2, 0)), 0, 255).astype(np.uint8)).save(os.path.join(ddir, f"{name}_{v}_torch.png"))
+                Image.fromarray(outs[wi]).save(os.path.join(ddir, f"{name}_{v}_coreml.png"))
             if v == "fp16":
                 outs16 = outs
             else:

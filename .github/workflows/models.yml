@@ -17,6 +17,10 @@ on:
         type: choice
         options: [int8, fp16]
         default: int8
+      only:
+        description: "Debug: convert only these models (comma list), skip quality/publish when set"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -81,14 +85,16 @@ jobs:
       - name: Convert + verify against PyTorch + latency
         run: |
           source .venv/bin/activate
-          python coreml/convert.py --weights build/weights --samples build/samples --out build
+          python coreml/convert.py --weights build/weights --samples build/samples --out build --only "${{ inputs.only }}"
 
       - name: Quality run (tiled, real photos)
+        if: ${{ inputs.only == '' }}
         run: |
           source .venv/bin/activate
           python coreml/quality.py --weights build/weights --samples build/samples --out build
 
       - name: Package + manifest
+        if: ${{ inputs.only == '' }}
         run: |
           source .venv/bin/activate
           python coreml/publish.py --out build --nafnet "${{ inputs.nafnet_variant }}" --ddcolor "${{ inputs.ddcolor_variant }}"
@@ -112,7 +118,7 @@ jobs:
           retention-days: 7
 
       - name: Publish release models-v1
-        if: ${{ inputs.publish }}
+        if: ${{ inputs.publish && inputs.only == '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
