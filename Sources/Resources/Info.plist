@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Lumotion</string>
+	<string>Clarivo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -52,16 +52,14 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Lumotion saves your finished videos, GIFs and stills to your library.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Lumotion uses the camera when you choose to take a photo to animate. Photos stay on your device and are never uploaded.</string>
+	<string>Clarivo saves your enhanced photos to your library. Your photos are processed on your device and never uploaded.</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Your data is used to show you more relevant ads. You can use Lumotion fully without allowing this.</string>
+	<string>Your data is used to show you more relevant ads. You can use Clarivo fully without allowing this. Your photos are never shared.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_APP_ID)</string>
-	<key>LMBannerAdUnitID</key>
+	<key>CVBannerAdUnitID</key>
 	<string>$(ADMOB_BANNER_UNIT_ID)</string>
-	<key>LMRewardedAdUnitID</key>
+	<key>CVRewardedAdUnitID</key>
 	<string>$(ADMOB_REWARDED_UNIT_ID)</string>
 	<key>SKAdNetworkItems</key>
 	<array>

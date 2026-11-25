@@ -4,15 +4,15 @@ import os
 /// Shared logger for everything in the Ads module. Never log personal data here.
 enum AdsLog {
     static let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.ecomswift.lumotion",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.ecomswift.photoenhancer",
         category: "Ads"
     )
 }
 
 /// Reads ad configuration from Info.plist (filled from Config/*.xcconfig). Ids are never hardcoded in Swift.
 enum AdsConfiguration {
-    static let bannerKey = "LMBannerAdUnitID"
-    static let rewardedKey = "LMRewardedAdUnitID"
+    static let bannerKey = "CVBannerAdUnitID"
+    static let rewardedKey = "CVRewardedAdUnitID"
 
     static var bannerUnitID: String? { unitID(forKey: bannerKey) }
     static var rewardedUnitID: String? { unitID(forKey: rewardedKey) }

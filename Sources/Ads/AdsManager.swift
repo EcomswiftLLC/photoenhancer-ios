@@ -18,7 +18,7 @@ enum AdsRequestPolicy {
     /// so ads are limited to general audiences. Change this and `AdsManager.applyRequestConfiguration()` together.
     static let maxContentRating: ContentRating = .general
 
-    /// Lumotion is a general photo editor and is not child-directed. These tags stay unset (nil), which is the SDK default.
+    /// Clarivo is a general photo enhancer and is not child-directed. These tags stay unset (nil), which is the SDK default.
     static let tagForChildDirectedTreatment: Bool? = nil
     static let tagForUnderAgeOfConsent: Bool? = nil
 

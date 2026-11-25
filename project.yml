@@ -32,6 +32,13 @@ targets:
       - path: Sources
         excludes:
           - "**/.gitkeep"
+          - "Resources/Samples/credits.json"
+      # Compiled Core ML models (`*.mlmodelc`), put here by CI from the models-v1 release. A folder reference, so the
+      # bundle gets Models/<name>.mlmodelc. Builds without models still work (the engine reports them unavailable).
+      - path: Models
+        type: folder
+        optional: true
+        buildPhase: resources
     dependencies:
       - package: GoogleMobileAds
         product: GoogleMobileAds
@@ -49,6 +56,10 @@ targets:
         SUPPORTS_MACCATALYST: NO
         SWIFT_STRICT_CONCURRENCY: minimal
         TARGETED_DEVICE_FAMILY: "1,2"
+        # Models are loaded by file name, never through generated classes.
+        COREML_CODEGEN_LANGUAGE: None
+        # The engine's pixel loops are optimised in every configuration, so simulator timings mean something.
+        SWIFT_OPTIMIZATION_LEVEL: "-O"
   ClarivoTests:
     type: bundle.unit-test
     platform: iOS

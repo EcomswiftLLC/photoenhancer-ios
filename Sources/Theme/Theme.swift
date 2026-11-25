@@ -1,29 +1,35 @@
 import SwiftUI
 import UIKit
 
-/// Lumotion design tokens. The app is dark only: a neutral, unlit surface is what lets a photo be judged honestly,
-/// and glow (the colour of a lens barrel engraving) is the single accent.
-enum LM {
+/// Clarivo design tokens, from docs/DESIGN.md (BRAND). Every colour, size and font of the app lives in this one file.
+///
+/// Glacier aqua on deep blue ink: cool, clean and precise. One accent per screen; photos sit on `ink` untinted.
+enum CV {
     enum Palette {
-        /// App background. Neutral, no colour cast.
-        static let lens     = Color(hex: 0x0A0C13)
-        /// First surface above the background.
-        static let carbon   = Color(hex: 0x11141F)
-        /// Raised surface (panels, rows when pressed).
-        static let graphite = Color(hex: 0x1A1F2E)
-        /// Hairline rules and outlines.
-        static let line     = Color.white.opacity(0.10)
-        /// Primary text.
-        static let paper    = Color(hex: 0xEDEAE3)
-        /// Secondary text. 7:1 on `lens`.
-        static let mist     = Color(hex: 0xA3A5AB)
-        /// The accent.
-        static let glow    = Color(hex: 0xF2C48D)
-        static let glowDeep = Color(hex: 0xC98F5B)
-        /// Text and icons on top of glow.
-        static let onGlow  = Color(hex: 0x1A1109)
-        static let danger   = Color(hex: 0xE88C80)
-        static let success  = Color(hex: 0x8FC7A4)
+        /// App background and launch background.
+        static let ink = Color(hex: 0x081219)
+        /// First surface: cards, sheets, tool bars.
+        static let deep = Color(hex: 0x0F1C26)
+        /// Raised surface: pressed rows, chips, slider tracks.
+        static let raised = Color(hex: 0x172836)
+        static let line = Color.white.opacity(0.09)
+        static let lineStrong = Color.white.opacity(0.16)
+        /// Primary text, 17.1:1 on ink.
+        static let pearl = Color(hex: 0xEEF5F7)
+        /// Secondary text, 8.7:1 on ink, 6.9:1 on raised.
+        static let mist = Color(hex: 0x9DB3BF)
+        /// Tertiary text: large text or icons only.
+        static let faint = Color(hex: 0x6B8494)
+        /// The accent: primary button, selected state, progress, links (12.8:1 on ink).
+        static let glacier = Color(hex: 0x7FE6D7)
+        static let glacierDeep = Color(hex: 0x47C9BA)
+        /// Highlight only: the compare divider ring and the focus snap.
+        static let frost = Color(hex: 0xCFF7F1)
+        /// Text and icons on glacier (11.6:1).
+        static let onGlacier = Color(hex: 0x04201D)
+        static let success = Color(hex: 0x6FD39A)
+        static let warning = Color(hex: 0xF4C56A)
+        static let danger = Color(hex: 0xFF8A80)
     }
 
     enum Space {
@@ -38,27 +44,39 @@ enum LM {
     enum Radius {
         static let chip: CGFloat = 10
         static let control: CGFloat = 14
-        static let panel: CGFloat = 22
+        static let tile: CGFloat = 18
+        static let panel: CGFloat = 24
+    }
+
+    /// Widths that keep content comfortable on iPad.
+    enum Layout {
+        /// Forms and settings on iPad.
+        static let readable: CGFloat = 760
+        static let narrow: CGFloat = 560
+        static let inspector: CGFloat = 360
+        static let homeRail: CGFloat = 400
     }
 
     enum Font {
-        /// Large editorial headline (New York). Tight tracking is applied by `.apDisplay`.
-        /// Serif sizes follow the person's text size setting (up to 1.6 times, so a headline never outgrows the screen).
-        private static func scaled(_ size: CGFloat, _ style: UIFont.TextStyle) -> CGFloat {
-            min(UIFontMetrics(forTextStyle: style).scaledValue(for: size), size * 1.6)
+        /// Sizes follow the person's text size setting, capped so a headline never outgrows the screen.
+        private static func scaled(_ size: CGFloat, _ style: UIFont.TextStyle, cap: CGFloat) -> CGFloat {
+            min(UIFontMetrics(forTextStyle: style).scaledValue(for: size), size * cap)
         }
-        static func display(_ size: CGFloat = 38) -> SwiftUI.Font {
-            .system(size: scaled(size, .largeTitle), weight: .regular, design: .serif)
+        /// SF Pro Display semibold (tracking -0.8 via `cvDisplay`).
+        static func display(_ size: CGFloat = 34) -> SwiftUI.Font {
+            .system(size: scaled(size, .largeTitle, cap: 1.5), weight: .semibold)
         }
-        static func title(_ size: CGFloat = 24) -> SwiftUI.Font {
-            .system(size: scaled(size, .title2), weight: .medium, design: .serif)
+        /// SF Pro semibold (tracking -0.4 via `cvTitle`).
+        static func title(_ size: CGFloat = 22) -> SwiftUI.Font {
+            .system(size: scaled(size, .title2, cap: 1.6), weight: .semibold)
         }
-        static let headline = SwiftUI.Font.system(.headline, design: .default).weight(.semibold)
-        static let body = SwiftUI.Font.system(.body, design: .default)
-        static let callout = SwiftUI.Font.system(.callout, design: .default)
-        static let label = SwiftUI.Font.system(.footnote, design: .default).weight(.medium)
-        static let caption = SwiftUI.Font.system(.caption, design: .default)
-        static let number = SwiftUI.Font.system(.callout, design: .rounded).monospacedDigit().weight(.medium)
+        static let headline = SwiftUI.Font.system(.headline).weight(.semibold)
+        static let body = SwiftUI.Font.system(.body)
+        static let callout = SwiftUI.Font.system(.callout)
+        static let label = SwiftUI.Font.system(.footnote).weight(.medium)
+        static let caption = SwiftUI.Font.system(.caption)
+        /// Real readouts only: 4×, 3024 × 4032, 12.2 MP, 84 %.
+        static let readout = SwiftUI.Font.system(.callout, design: .monospaced).monospacedDigit().weight(.medium)
     }
 }
 
@@ -87,26 +105,29 @@ extension UIColor {
 
 extension View {
     /// Full-screen background in the app's base colour.
-    func apScreen() -> some View {
-        background(LM.Palette.lens.ignoresSafeArea())
+    func cvScreen() -> some View {
+        background(CV.Palette.ink.ignoresSafeArea())
     }
 
-    /// Editorial headline treatment.
-    func apDisplay(_ size: CGFloat = 38) -> some View {
-        font(LM.Font.display(size)).tracking(-0.6).foregroundStyle(LM.Palette.paper)
+    func cvDisplay(_ size: CGFloat = 34) -> some View {
+        font(CV.Font.display(size)).tracking(-0.8).foregroundStyle(CV.Palette.pearl)
+    }
+
+    func cvTitle(_ size: CGFloat = 22) -> some View {
+        font(CV.Font.title(size)).tracking(-0.4).foregroundStyle(CV.Palette.pearl)
     }
 }
 
 /// Appearance for system bars, set once at launch.
-enum LMAppearance {
+enum CVAppearance {
     static func configure() {
         let nav = UINavigationBarAppearance()
         nav.configureWithTransparentBackground()
-        nav.titleTextAttributes = [.foregroundColor: UIColor(hex: 0xEDEAE3)]
-        nav.largeTitleTextAttributes = [.foregroundColor: UIColor(hex: 0xEDEAE3)]
+        nav.titleTextAttributes = [.foregroundColor: UIColor(hex: 0xEEF5F7)]
+        nav.largeTitleTextAttributes = [.foregroundColor: UIColor(hex: 0xEEF5F7)]
         UINavigationBar.appearance().standardAppearance = nav
         UINavigationBar.appearance().scrollEdgeAppearance = nav
         UINavigationBar.appearance().compactAppearance = nav
-        UINavigationBar.appearance().tintColor = UIColor(hex: 0xF2C48D)
+        UINavigationBar.appearance().tintColor = UIColor(hex: 0x7FE6D7)
     }
 }

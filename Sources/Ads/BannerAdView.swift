@@ -179,12 +179,12 @@ final class BannerAdSlot: NSObject, ObservableObject, BannerViewDelegate {
 
 // MARK: - SwiftUI views
 
-/// Adaptive banner for browse screens only (Home, My Resumes, Templates, Cover Letters, Profile).
+/// Adaptive banner for browse screens only (in Clarivo: Home only).
 ///
 /// Takes zero height until an ad has loaded, and stays collapsed when the unit id is missing, consent does not allow ads,
 /// or the SDK has not finished starting. Place it as the last item of scrolling content (inline adaptive size),
 /// never next to a primary button, never on empty, no-results or error states, and never on the editor, preview or
-/// export screens. Prefer `CKInlineBanner`, which adds the spacing and the "Advertisement" label.
+/// export screens. Prefer `CVInlineBanner`, which adds the spacing and the "Advertisement" label.
 @MainActor
 struct BannerAdView: View {
     @StateObject private var ownSlot = BannerAdSlot()
@@ -215,7 +215,7 @@ struct BannerAdView: View {
 /// End-of-content banner with built-in spacing: 24 pt above, 16 pt below and a small "Advertisement" label,
 /// all only while an ad is showing. Collapses to nothing otherwise. Use this on every browse screen.
 @MainActor
-struct CKInlineBanner: View {
+struct CVInlineBanner: View {
     @StateObject private var ownSlot = BannerAdSlot()
     private let externalSlot: BannerAdSlot?
 
@@ -255,12 +255,12 @@ private struct BannerAdContent: View {
 
     var body: some View {
         let showing = slot.isShowing
-        VStack(spacing: LM.Space.xs) {
+        VStack(spacing: CV.Space.xs) {
             if let unitID = unitID, canShow {
                 if showsLabel && showing {
                     Text("Advertisement")
-                        .font(LM.Font.caption)
-                        .foregroundStyle(LM.Palette.mist)
+                        .font(CV.Font.caption)
+                        .foregroundStyle(CV.Palette.mist)
                         .accessibilityHidden(true)
                 }
                 BannerRepresentable(slot: slot, unitID: unitID, width: availableWidth)

@@ -66,11 +66,14 @@ struct RewardedPolicy: Equatable {
     static let maxWait: TimeInterval = 6
 }
 
-/// Lumotion is free. Saving or sharing a finished photo is paid for by watching one short rewarded ad, which the person
-/// chooses to watch. When no ad is ready (offline, no fill, consent still pending) the export simply goes ahead.
+/// Clarivo is free. Saving or sharing a finished photo (or a whole batch) is paid for by watching one short rewarded ad,
+/// which the person chooses to watch. When no ad is ready (offline, no fill, consent still pending) the export simply goes ahead.
 @MainActor
 final class RewardedGate: NSObject, FullScreenContentDelegate {
     static let shared = RewardedGate()
+
+    /// True while a rewarded ad covers the screen. The review prompt never appears then.
+    private(set) var isPresentingAd = false
 
     private var ad: RewardedAd?
     private var loadedAt: Date?
@@ -152,8 +155,8 @@ final class RewardedGate: NSObject, FullScreenContentDelegate {
 
     private func presentOffer(from presenter: UIViewController, action: @escaping () -> Void) {
         let alert = UIAlertController(
-            title: "Watch a short ad to export",
-            message: "Lumotion is free because of ads. Watch one ad to the end to save or share your animation.",
+            title: "Watch a short ad to save",
+            message: "Clarivo is free because of ads. Watch one short ad to the end to save or share. A whole batch needs only one ad.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
@@ -218,6 +221,8 @@ final class RewardedGate: NSObject, FullScreenContentDelegate {
         self.ad = nil
         earned = false
         proceed = action
+        isPresentingAd = true
+        ReviewPromptTracker.shared.recordAdShown()
         ad.present(from: presenter) { [weak self] in
             self?.earned = true
         }
@@ -226,6 +231,8 @@ final class RewardedGate: NSObject, FullScreenContentDelegate {
     // MARK: FullScreenContentDelegate
 
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        isPresentingAd = false
+        ReviewPromptTracker.shared.recordAdShown()
         let action = proceed
         proceed = nil
         if earned {
@@ -247,7 +254,7 @@ final class RewardedGate: NSObject, FullScreenContentDelegate {
     private func notifyEarlyClose() {
         guard let presenter = AdsPresenter.topViewController() else { return }
         let alert = UIAlertController(
-            title: "Watch the whole ad to export",
+            title: "Watch the whole ad to save",
             message: "The ad was closed before it finished, so nothing was saved or shared. Tap Save or Share to try again.",
             preferredStyle: .alert
         )
@@ -258,6 +265,7 @@ final class RewardedGate: NSObject, FullScreenContentDelegate {
     func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         AdsLog.logger.info("Rewarded ad failed to present: \(error.localizedDescription, privacy: .public)")
         // The ad is what failed, not the person: let the export through.
+        isPresentingAd = false
         let action = proceed
         proceed = nil
         earned = false
