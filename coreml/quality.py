@@ -175,10 +175,10 @@ def run_deblur(args, rep):
     rep["deblur"] = rows
 
 
-def ddcolor_upstream_reference(model, rgb, n=512):
-    """Exact upstream preprocessing (cv2 Lab gray) with the torch model, for an end-to-end check."""
-    img = rgb.astype(np.float32) / 255.0
-    r = cv2.resize(img, (n, n))
+def ddcolor_upstream_reference(model, rgb512):
+    """Upstream preprocessing (cv2 Lab gray on CPU) with the torch model on the same 512 input,
+    to check that the in-graph gray conversion + Core ML match the upstream pipeline end to end."""
+    r = rgb512.astype(np.float32) / 255.0
     L = cv2.cvtColor(r, cv2.COLOR_RGB2Lab)[:, :, :1]
     gray = cv2.cvtColor(np.concatenate([L, 0 * L, 0 * L], -1), cv2.COLOR_LAB2RGB)
     with torch.no_grad():
@@ -202,7 +202,8 @@ def run_colorize(args, rep):
                 orig = np.asarray(Image.fromarray(orig).resize((1600, int(orig.shape[0] * 1600 / orig.shape[1])), Image.LANCZOS))
             lab = rgb_to_lab(orig)
             gray = lab_to_rgb_u8(np.stack([lab[..., 0], 0 * lab[..., 0], 0 * lab[..., 0]], -1))
-            small = np.asarray(Image.fromarray(gray).resize((512, 512), Image.BICUBIC))
+            # app contract: feed the photo itself resized to 512x512; the graph makes it gray
+            small = np.asarray(Image.fromarray(orig).resize((512, 512), Image.BICUBIC))
             row = {"image": name, "group": group, "size": list(orig.shape[:2])}
             outs = {}
             for v, (ml, cu) in variants.items():
@@ -217,7 +218,7 @@ def run_colorize(args, rep):
             if "int8" in outs:
                 row["psnr_int8_vs_fp16"] = psnr(outs["int8"], outs["fp16"])
                 row["ssim_int8_vs_fp16"] = ssim(outs["int8"], outs["fp16"])
-            ab_up = ddcolor_upstream_reference(torch_w.model, orig)
+            ab_up = ddcolor_upstream_reference(torch_w.model, small)
             up = combine_l_ab(gray, ab_up)
             row["psnr_fp16_vs_upstream_torch_pipeline"] = psnr(outs["fp16"], up)
             if group == "color":

@@ -17,11 +17,22 @@ class LayerNorm2d(nn.Module):
         self.bias = nn.Parameter(torch.zeros(channels))
         self.eps = eps
 
+    # fp16 safety: the residual stream of the deep 28-block stage reaches |x| ~ 600 on photos and
+    # ~ 18000 on heavy noise, so (x - mu)^2 overflows float16 (max 65504) and blocks output garbage
+    # (seen on Core ML as broken tiles on flat backgrounds). Layer norm is scale invariant, so we
+    # normalise by the per-pixel channel max m: d' = d / m in [-1, 1], and
+    #   d / sqrt(mean(d^2) + eps) == d' / sqrt(mean(d'^2) + eps / m^2),  eps / m^2 = (sqrt(eps) / m)^2
+    # which is exact (eps = 1e-6) and every intermediate stays in fp16 range. m is floored at
+    # sqrt(eps) = 1e-3 (then d' -> tiny and the result is ~0, as in the original).
     def forward(self, x):
         mu = x.mean(1, keepdim=True)
         d = x - mu
-        var = (d * d).mean(1, keepdim=True)
-        y = d / torch.sqrt(var + self.eps)
+        r = self.eps ** 0.5
+        m = torch.clamp(d.abs().amax(dim=1, keepdim=True), min=r)
+        dn = d / m
+        var = (dn * dn).mean(1, keepdim=True)
+        e = (r / m) * (r / m)
+        y = dn / torch.sqrt(var + e)
         return self.weight.view(1, -1, 1, 1) * y + self.bias.view(1, -1, 1, 1)
 
 
