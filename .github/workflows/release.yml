@@ -1,6 +1,6 @@
 name: Release to App Store Connect
 
-# Manual only. Signs with cloud-managed certificates through the App Store Connect LMI key
+# Manual only. Signs with cloud-managed certificates through the App Store Connect ASC key
 # (secrets ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64), archives the Release configuration
 # and uploads the build to App Store Connect (TestFlight, then App Review).
 
@@ -27,7 +27,7 @@ jobs:
       - name: Generate project
         run: xcodegen generate
 
-      - name: Write LMI key
+      - name: Write ASC key
         env:
           KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
         run: |
@@ -39,14 +39,14 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p build
-          xcodebuild archive             -project Lumotion.xcodeproj             -scheme Lumotion             -configuration Release             -destination "generic/platform=iOS"             -archivePath build/Lumotion.xcarchive             CODE_SIGNING_ALLOWED=NO             CODE_SIGNING_REQUIRED=NO             CODE_SIGN_IDENTITY=""             CURRENT_PROJECT_VERSION=${{ github.run_number }}             | tee build/archive.log | tail -n 40
+          xcodebuild archive             -project Clarivo.xcodeproj             -scheme Clarivo             -configuration Release             -destination "generic/platform=iOS"             -archivePath build/Clarivo.xcarchive             CODE_SIGNING_ALLOWED=NO             CODE_SIGNING_REQUIRED=NO             CODE_SIGN_IDENTITY=""             CURRENT_PROJECT_VERSION=${{ github.run_number }}             | tee build/archive.log | tail -n 40
 
       - name: Validate privacy manifests (ITMS-91064)
         run: |
           # App Store Connect rejects any manifest with NSPrivacyTracking=true and no NSPrivacyTrackingDomains.
           # We declare no tracking domains (iOS would block them for people who deny ATT), so every manifest must be false/absent.
           PB=/usr/libexec/PlistBuddy
-          LMP=build/Lumotion.xcarchive/Products/Applications/Lumotion.app
+          LMP=build/Clarivo.xcarchive/Products/Applications/Clarivo.app
           find "$LMP" -name PrivacyInfo.xcprivacy | while read -r f; do
             tracking=$($PB -c "Print :NSPrivacyTracking" "$f" 2>/dev/null || echo missing)
             domains=$($PB -c "Print :NSPrivacyTrackingDomains" "$f" 2>/dev/null | grep -c . || true)
@@ -59,11 +59,11 @@ jobs:
 
       - name: Check production ad ids in the archive
         run: |
-          LMP=build/Lumotion.xcarchive/Products/Applications/Lumotion.app
+          LMP=build/Clarivo.xcarchive/Products/Applications/Clarivo.app
           /usr/libexec/PlistBuddy -c "Print :GADApplicationIdentifier" "$LMP/Info.plist"
           /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$LMP/Info.plist"
           # The app id and both unit ids must be real: not Google's test id (3940256099942544) and not an unresolved $(...) setting.
-          for KEY in GADApplicationIdentifier LMBannerAdUnitID LMRewardedAdUnitID; do
+          for KEY in GADApplicationIdentifier CVBannerAdUnitID CVRewardedAdUnitID; do
             VALUE="$(/usr/libexec/PlistBuddy -c "Print :$KEY" "$LMP/Info.plist")"
             echo "$KEY = $VALUE"
             if [ -z "$VALUE" ]; then
@@ -79,7 +79,7 @@ jobs:
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          BUNDLE_ID: com.ecomswift.lumotion
+          BUNDLE_ID: com.ecomswift.photoenhancer
         run: |
           set -e
           python3 -m venv "$RUNNER_TEMP/venv"
@@ -118,11 +118,11 @@ jobs:
             <key>signingStyle</key><string>manual</string>
             <key>signingCertificate</key><string>Apple Distribution</string>
             <key>provisioningProfiles</key>
-            <dict><key>com.ecomswift.lumotion</key><string>${PROFILE_NAME}</string></dict>
+            <dict><key>com.ecomswift.photoenhancer</key><string>${PROFILE_NAME}</string></dict>
           </dict>
           </plist>
           PLIST
-          xcodebuild -exportArchive -archivePath build/Lumotion.xcarchive -exportOptionsPlist build/ExportLocal.plist -exportPath build/export-local 2>&1 | tail -n 5
+          xcodebuild -exportArchive -archivePath build/Clarivo.xcarchive -exportOptionsPlist build/ExportLocal.plist -exportPath build/export-local 2>&1 | tail -n 5
           mkdir -p build/ipa && cd build/ipa && unzip -q ../export-local/*.ipa
           find . -iname "*.xcprivacy" | while read -r f; do
             echo "=== $f"
@@ -130,7 +130,7 @@ jobs:
             echo -n "tracking: "; /usr/libexec/PlistBuddy -c "Print :NSPrivacyTracking" "$f" 2>&1 || true
             echo "domains:"; /usr/libexec/PlistBuddy -c "Print :NSPrivacyTrackingDomains" "$f" 2>&1 || true
           done
-          echo "--- bundle contents (top level):"; ls Payload/Lumotion.app | head -40
+          echo "--- bundle contents (top level):"; ls Payload/Clarivo.app | head -40
 
       - name: Export and upload
         env:
@@ -150,13 +150,13 @@ jobs:
             <key>signingStyle</key><string>manual</string>
             <key>signingCertificate</key><string>Apple Distribution</string>
             <key>provisioningProfiles</key>
-            <dict><key>com.ecomswift.lumotion</key><string>${PROFILE_NAME}</string></dict>
+            <dict><key>com.ecomswift.photoenhancer</key><string>${PROFILE_NAME}</string></dict>
             <key>uploadSymbols</key><true/>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict>
           </plist>
           PLIST
-          xcodebuild -exportArchive             -archivePath build/Lumotion.xcarchive             -exportOptionsPlist build/ExportOptions.plist             -exportPath build/export             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8"             -authenticationKeyID "$KEY_ID"             -authenticationKeyIssuerID "$ISSUER_ID"             2>&1 | tee build/export.log | tail -n 60
+          xcodebuild -exportArchive             -archivePath build/Clarivo.xcarchive             -exportOptionsPlist build/ExportOptions.plist             -exportPath build/export             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8"             -authenticationKeyID "$KEY_ID"             -authenticationKeyIssuerID "$ISSUER_ID"             2>&1 | tee build/export.log | tail -n 60
 
       - name: Delete the short-lived certificate and profile
         if: always()
@@ -175,6 +175,6 @@ jobs:
           path: build/*.log
           if-no-files-found: ignore
 
-      - name: Remove LMI key
+      - name: Remove ASC key
         if: always()
         run: rm -rf "$RUNNER_TEMP/keys"

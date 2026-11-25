@@ -1,5 +1,5 @@
 """Creates a short-lived App Store distribution certificate and provisioning profile through the
-App Store Connect LMI, for the manual release workflow, and removes them again afterwards.
+App Store Connect ASC, for the manual release workflow, and removes them again afterwards.
 
 Why: exporting an unsigned archive with cloud signing left the embedded Google frameworks unsigned,
 and the upload was rejected. Signing everything with one real distribution certificate avoids that.
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import jwt
 
-LMI = "https://api.appstoreconnect.apple.com"
+ASC = "https://api.appstoreconnect.apple.com"
 
 
 def token() -> str:
@@ -37,7 +37,7 @@ def token() -> str:
 
 def call(method: str, path: str, body=None):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(LMI + path, data=data, method=method)
+    req = urllib.request.Request(ASC + path, data=data, method=method)
     req.add_header("Authorization", "Bearer " + token())
     req.add_header("Content-Type", "application/json")
     try:
