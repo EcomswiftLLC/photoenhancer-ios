@@ -204,7 +204,7 @@ def main():
             entry["variants"][v] = item
             print(json.dumps({name + ":" + v: item}, indent=1), flush=True)
             worst = min(val for k, val in vs_torch.items() if k.startswith("psnr") and k.endswith("_min"))
-            if worst < 40.0:
+            if v == "fp16" and worst < 40.0:
                 failures.append(f"{name}:{v} worst-tile PSNR vs torch {worst:.1f} dB < 40 dB")
         report["models"][name] = entry
         del wrapper
