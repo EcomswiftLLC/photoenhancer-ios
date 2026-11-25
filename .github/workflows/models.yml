@@ -109,7 +109,7 @@ jobs:
           xcrun swiftc -O coreml/simcheck/main.swift -o build/simcheck/simcheck_mac
           SDK=$(xcrun --sdk iphonesimulator --show-sdk-path)
           xcrun swiftc -O -sdk "$SDK" -target arm64-apple-ios17.0-simulator coreml/simcheck/main.swift -o build/simcheck/simcheck_sim
-          UDID=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]{36})\).*//')
+          UDID=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]" | head -1 | grep -oE "[0-9A-F-]{36}")
           echo "Simulator: $UDID"
           xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b >/dev/null
           for m in build/simcheck/*.mlmodelc; do for img in build/simcheck/*.png; do
