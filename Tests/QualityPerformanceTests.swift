@@ -74,6 +74,7 @@ final class QualityPerformanceTests: XCTestCase {
                 row["baselineFootprintMB"] = Int(baseline / 1_048_576)
                 row["capApplied"] = output.notes.capApplied
                 if let faces = output.notes.facesFound { row["faces"] = faces }
+                if item.operations.contains(.colorize) { row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics }
                 if !output.notes.messages.isEmpty { row["notes"] = output.notes.messages }
                 try writePNG(input, name: "\(item.name)-before.png")
                 try writePNG(output.image, name: "\(item.name)-after.png")

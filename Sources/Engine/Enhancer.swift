@@ -14,6 +14,8 @@ final class Enhancer: @unchecked Sendable {
     static let deblurOverlap = 32
     /// The colorize model's `ab` output in Lab units per output unit (DDColor gives Lab units directly).
     static var colorizeABScale: Float = 1
+    /// What the last colorize run read from the model (type, shape, value ranges), for the quality report.
+    static var lastColorizeDiagnostics = ""
 
     init(models: ModelProviding = BundleModelProvider.shared) {
         self.models = models
@@ -235,6 +237,9 @@ final class Enhancer: @unchecked Sendable {
         if let array = value.multiArrayValue {
             let a = try ModelRunner.plane(array, channel: 0)
             let b = try ModelRunner.plane(array, channel: 1)
+            Self.lastColorizeDiagnostics = "type \(array.dataType.rawValue) shape \(array.shape) strides \(array.strides) "
+                + "a[\(a.values.min() ?? 0), \(a.values.max() ?? 0)] b[\(b.values.min() ?? 0), \(b.values.max() ?? 0)] "
+                + "pixelBuffer \(array.pixelBuffer != nil)"
             let scale = Self.colorizeABScale
             return LabColor.merge(
                 lightnessOf: image,

@@ -202,20 +202,36 @@ enum ModelRunner {
                 }
             }
         }
-        switch array.dataType {
-        case .float32:
-            let p = array.dataPointer.bindMemory(to: Float32.self, capacity: array.count)
-            store { p[$0] }
-        case .double:
-            let p = array.dataPointer.bindMemory(to: Double.self, capacity: array.count)
-            store { Float(p[$0]) }
-        case .float16:
-            let p = array.dataPointer.bindMemory(to: UInt16.self, capacity: array.count)
-            store { halfToFloat(p[$0]) }
-        default:
-            store { array[$0].floatValue }
-        }
+        try withElements(array) { read in store(read) }
         return RGBAImage(width: width, height: height, pixels: out)
+    }
+
+    /// Calls `body` with a reader for element `i` (in strides units) as Float. Uses `withUnsafeBytes`, which is also
+    /// correct for arrays Core ML backs with a pixel buffer (Float16 outputs often are), where `dataPointer` is not.
+    static func withElements(_ array: MLMultiArray, _ body: ((Int) -> Float) -> Void) throws {
+        let type = array.dataType
+        var handled = true
+        array.withUnsafeBytes { raw in
+            switch type {
+            case .float32:
+                let p = raw.bindMemory(to: Float32.self)
+                body { $0 < p.count ? p[$0] : 0 }
+            case .float16:
+                let p = raw.bindMemory(to: UInt16.self)
+                body { $0 < p.count ? halfToFloat(p[$0]) : 0 }
+            case .double:
+                let p = raw.bindMemory(to: Double.self)
+                body { $0 < p.count ? Float(p[$0]) : 0 }
+            case .int32:
+                let p = raw.bindMemory(to: Int32.self)
+                body { $0 < p.count ? Float(p[$0]) : 0 }
+            default:
+                handled = false
+            }
+        }
+        if !handled {
+            body { array[$0].floatValue }
+        }
     }
 
     /// Reads one 2-D plane `channel` of a (1,C,H,W) or (C,H,W) array as floats (used for the colorize `ab` output).
@@ -227,18 +243,8 @@ enum ModelRunner {
         let cs = strides[strides.count - 3], hs = strides[strides.count - 2], ws = strides[strides.count - 1]
         var values = [Float](repeating: 0, count: width * height)
         let base = channel * cs
-        switch array.dataType {
-        case .float32:
-            let p = array.dataPointer.bindMemory(to: Float32.self, capacity: array.count)
-            for y in 0..<height { for x in 0..<width { values[y * width + x] = p[base + y * hs + x * ws] } }
-        case .float16:
-            let p = array.dataPointer.bindMemory(to: UInt16.self, capacity: array.count)
-            for y in 0..<height { for x in 0..<width { values[y * width + x] = halfToFloat(p[base + y * hs + x * ws]) } }
-        case .double:
-            let p = array.dataPointer.bindMemory(to: Double.self, capacity: array.count)
-            for y in 0..<height { for x in 0..<width { values[y * width + x] = Float(p[base + y * hs + x * ws]) } }
-        default:
-            for y in 0..<height { for x in 0..<width { values[y * width + x] = array[base + y * hs + x * ws].floatValue } }
+        try withElements(array) { read in
+            for y in 0..<height { for x in 0..<width { values[y * width + x] = read(base + y * hs + x * ws) } }
         }
         return (width, height, values)
     }
