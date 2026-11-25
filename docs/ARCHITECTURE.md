@@ -55,3 +55,6 @@ Trigger: right after the user's 3rd successful export completed, with the saved 
 - BRAND agent: `design/**`, `tools/make_icon.py`, `Sources/Resources/Assets.xcassets/AppIcon*`, `Sources/Resources/Samples/**`, `website/**`, `docs/store/**`, `tools/build_store_metadata.py`, `tools/store_shots*.py`, AdMob via Chrome, `Config/Release.xcconfig` ids.
 - Main session: ASC record/listing/upload, release.yml, secrets.
 Commit only your own files, `git pull --rebase` before each push, small commits.
+
+## Update 2026-11-25 (models shipped in v1)
+Release `models-v1` contains only **ESRGANGeneral** (fp16, 2.3 MB) and **DDColorTiny** (8-bit weights, 51 MB). NAFNet deblur failed the visual check and is deferred (listed under `deferred` in models-manifest.json); **Unblur = Real-ESRGAN pass + Core Image sharpen/denoise**. The authoritative model contract is `docs/MODELS.md` + `models-manifest.json` (conversion code lives in `coreml/`, not `models/`). Listing and in-app copy must only claim shipped features; never claim recovered detail (upscale PSNR is ~equal to bicubic; the gain is cleaner edges and less blocking/noise).
