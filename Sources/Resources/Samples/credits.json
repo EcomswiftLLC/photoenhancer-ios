@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "title": "Sample photos",
+  "photos": [
+    {
+      "file": "portrait-woman.jpg",
+      "author": "Pedro H. Novais",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/portrait-of-woman-with-braided-hair-outdoors-38866875/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "portrait-man.jpg",
+      "author": "Noorain Saleem",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/an-elderly-bearded-man-smiling-11905784/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "portrait-soft-focus.jpg",
+      "author": "Ali Ramazan Çiftçi",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/empty-swimming-pool-13127462/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "lake-autumn.jpg",
+      "author": "Gio Spigo",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/scenic-autumn-view-of-tovel-lake-in-trentino-41238366/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "historic-building.jpg",
+      "author": "Dmitry Alexandrovich",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/photo-of-a-historic-building-8327163/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "tabby-cat.jpg",
+      "author": "Samuel Sweet",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/a-close-up-shot-of-a-cat-6145891/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "kingfisher.jpg",
+      "author": "Siegfried Poepperl",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/close-up-shot-of-a-kingfisher-14810091/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "street-sign.jpg",
+      "author": "Diogo Miranda",
+      "site": "Pexels",
+      "sourceURL": "https://www.pexels.com/photo/street-sign-pole-26974689/",
+      "licence": "Pexels License",
+      "licenceURL": "https://www.pexels.com/license/"
+    },
+    {
+      "file": "old-street-1864.jpg",
+      "author": "Andrew Joseph Russell (1864), via The Metropolitan Museum of Art, object 302354",
+      "site": "The Met Open Access",
+      "sourceURL": "https://www.metmuseum.org/art/collection/search/302354",
+      "licence": "Public domain (CC0), The Metropolitan Museum of Art Open Access",
+      "licenceURL": "https://www.metmuseum.org/policies/image-resources"
+    },
+    {
+      "file": "old-portrait-1859.jpg",
+      "author": "Horatio Ross (about 1859), via The Metropolitan Museum of Art, object 288085",
+      "site": "The Met Open Access",
+      "sourceURL": "https://www.metmuseum.org/art/collection/search/288085",
+      "licence": "Public domain (CC0), The Metropolitan Museum of Art Open Access",
+      "licenceURL": "https://www.metmuseum.org/policies/image-resources"
+    }
+  ],
+  "note": "Files ending in -lowres, -motion-blur or -noisy are copies of the listed originals that Ecom Swift LLC deliberately degraded for demonstration."
+}
