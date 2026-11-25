@@ -141,3 +141,77 @@ def load(path):
     sd = sd.get("params", sd)
     net.load_state_dict(sd, strict=True)
     return net.eval()
+
+
+def _block_ctx(blk, inp, ctx, mix):
+    """NAFBlock forward where the channel-attention pooling uses mix*ctx + (1-mix)*own tile mean."""
+    x = blk.norm1(inp)
+    x = blk.conv1(x)
+    x = blk.conv2(x)
+    x = blk.sg(x)
+    own = spatial_mean(x)
+    pooled = own + mix * (ctx - own)
+    x = x * blk.sca[1](pooled)
+    x = blk.conv3(x)
+    y = inp + x * blk.beta
+    x = blk.conv4(blk.norm2(y))
+    x = blk.sg(x)
+    x = blk.conv5(x)
+    return y + x * blk.gamma, own
+
+
+class NAFNetContext(nn.Module):
+    """NAFNet whose channel-attention (SCA) statistics can come from the whole photo.
+
+    NAFNet's SCA pools each block's features over the whole input. Upstream runs whole images; on
+    small tiles of dark, flat areas the tile-local statistics are out of distribution and the deep
+    blocks explode (garbage tiles, reproduced in fp32 PyTorch). Two passes fix it:
+      pass 1: the whole photo resized to 256x256, mix = 0 -> output `stats` (global SCA statistics)
+      pass 2: every 256x256 tile with context = stats, mix = 1 -> `result`
+    inputs: image (1,3,256,256) 0..1, context (1,N), mix (1,1); outputs: result 0..255, stats (1,N)."""
+
+    def __init__(self, net):
+        super().__init__()
+        self.net = net
+        self.sizes = []
+        for blk in self.blocks():
+            self.sizes.append(blk.conv3.in_channels)
+        self.n_stats = sum(self.sizes)
+
+    def blocks(self):
+        n = self.net
+        out = []
+        for e in n.encoders:
+            out += list(e)
+        out += list(n.middle_blks)
+        for d in n.decoders:
+            out += list(d)
+        return out
+
+    def forward(self, image, context, mix):
+        n = self.net
+        m = mix.view(1, 1, 1, 1)
+        stats = []
+        off = [0]
+
+        def run(seq, x):
+            for blk in seq:
+                c = blk.conv3.in_channels
+                ctx = context[:, off[0]:off[0] + c].reshape(1, c, 1, 1)
+                off[0] += c
+                x, own = _block_ctx(blk, x, ctx, m)
+                stats.append(own.reshape(1, c))
+            return x
+
+        x = n.intro(image)
+        encs = []
+        for enc, down in zip(n.encoders, n.downs):
+            x = run(enc, x)
+            encs.append(x)
+            x = down(x)
+        x = run(n.middle_blks, x)
+        for dec, up, skip in zip(n.decoders, n.ups, encs[::-1]):
+            x = up(x) + skip
+            x = run(dec, x)
+        x = n.ending(x) + image
+        return torch.clamp(x, 0.0, 1.0) * 255.0, torch.cat(stats, dim=1)

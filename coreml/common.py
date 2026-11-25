@@ -64,7 +64,7 @@ MODELS = {
         "in_size": 256, "scale": 1, "output": "image",
         "licence": "MIT",
         "source": "https://github.com/megvii-research/NAFNet (NAFNet-GoPro-width32.pth, official Google Drive 1Fr2QadtDCEXg6iwWX8OzeZLbHOx2t5Bj)",
-        "description": "NAFNet width32 trained on GoPro motion deblurring",
+        "description": "NAFNet width32 trained on GoPro motion deblurring, two-pass global channel-attention context",
     },
     "DDColorTiny": {
         "weights": "ddcolor_paper_tiny.pth",
@@ -86,7 +86,8 @@ def build_torch(name, weights_dir):
     if name == "ESRGANGeneral":
         w = srvgg.ESRGANWrapper(srvgg.load(path))
     elif name == "NAFNetDeblur":
-        w = nafnet.NAFNetWrapper(nafnet.load(path))
+        w = nafnet.NAFNetContext(nafnet.load(path)).eval()
+        return w, (torch.rand(1, 3, n, n), torch.rand(1, w.n_stats), torch.ones(1, 1))
     else:
         w = ddcolor.DDColorWrapper(ddcolor.make_convertible(ddcolor.load(path, input_size=n)))
     w.eval()

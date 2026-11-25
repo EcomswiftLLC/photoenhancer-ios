@@ -125,5 +125,8 @@ jobs:
           if ! gh release view models-v1 >/dev/null 2>&1; then
             gh release create models-v1 --title "Core ML models v1" --notes "Converted Core ML models for Clarivo. See docs/MODELS.md and models-manifest.json." --latest=false
           fi
+          for m in ESRGANGeneral NAFNetDeblur DDColorTiny; do
+            if [ ! -f "build/release/$m.mlpackage.zip" ]; then gh release delete-asset models-v1 "$m.mlpackage.zip" -y 2>/dev/null || true; fi
+          done
           gh release upload models-v1 build/release/*.zip build/release/models-manifest.json --clobber
           gh release view models-v1 --json assets --jq '.assets[] | "\(.name) \(.size)"'

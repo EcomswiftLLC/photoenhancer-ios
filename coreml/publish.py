@@ -29,12 +29,25 @@ CONTRACT = {
         "postprocessing": "feathered tile blend (see tiling); 2x = run 4x then high-quality downscale by 0.5",
     },
     "NAFNetDeblur": {
-        "task": "motion/camera-shake deblur",
+        "task": "motion/camera-shake deblur (two passes: global context, then tiles)",
+        "inputs": [
+            dict(COMMON_IMAGE_IN, shape=[1, 3, 256, 256], width=256, height=256),
+            {"name": "context", "type": "MLMultiArray", "dtype": "Float16", "shape": [1, 8384],
+             "meaning": "global channel-attention statistics = the `stats` output of pass 1; zeros in pass 1"},
+            {"name": "mix", "type": "MLMultiArray", "dtype": "Float16", "shape": [1, 1],
+             "meaning": "0 in pass 1 (use the input's own statistics), 1 in pass 2 (use `context`)"},
+        ],
         "input": dict(COMMON_IMAGE_IN, shape=[1, 3, 256, 256], width=256, height=256),
+        "outputs": [
+            {"name": "result", "type": "image", "shape": [1, 3, 256, 256], "width": 256, "height": 256,
+             "color_space": "sRGB", "value_range": "0...255, clamped inside the graph"},
+            {"name": "stats", "type": "MLMultiArray", "dtype": "Float16", "shape": [1, 8384],
+             "meaning": "global statistics; read it after pass 1 and pass it as `context` to every tile in pass 2 (ignore it in pass 2)"},
+        ],
         "output": {"name": "result", "type": "image", "shape": [1, 3, 256, 256], "width": 256, "height": 256,
                    "color_space": "sRGB", "value_range": "0...255, clamped inside the graph"},
         "tile": 256, "overlap": 16, "scale": 1,
-        "preprocessing": "none beyond tiling; for very large photos deblur works best when the blur is ~5-25 px at the working size, so run on a copy whose long side is <= 2048 px if the photo is larger and upscale/blend back if needed",
+        "preprocessing": "PASS 1 (once per photo): resize the whole working image to 256x256 (stretch), predict with context = zeros, mix = 0, keep output `stats`. PASS 2: every 256x256 tile with context = stats, mix = 1, take `result`. Skipping pass 1 (plain per-tile NAFNet) produces garbage tiles on dark flat areas - this is a property of the upstream model, reproduced in fp32 PyTorch. Blur of ~5-25 px at the working size is the model's comfort zone: for photos with a long side > 2048 px run on a copy at long side 2048.",
         "postprocessing": "feathered tile blend (see tiling)",
     },
     "DDColorTiny": {
@@ -95,6 +108,17 @@ def main():
                 "compute_units": "MLModelConfiguration.computeUnits = .all", "tiling": TILING,
                 "conversion_machine": conv.get("machine"), "models": []}
     total = 0
+    deferred = []
+    deb = qual.get("deblur") or []
+    naf_fail = [g for g in conv.get("gate_failures", []) if g.startswith("NAFNetDeblur")]
+    v = args.nafnet
+    broken = sum(r.get(f"broken_blocks_{v}", 1) for r in deb) if deb else None
+    if naf_fail or not deb or broken:
+        reason = "; ".join(naf_fail) or ("no deblur quality run" if not deb else f"{broken} broken 256px blocks in the real-photo quality run")
+        deferred.append({"name": "NAFNetDeblur", "status": "deferred", "reason": reason,
+                         "app_fallback": "Unblur ships as Real-ESRGAN pass (4x then downscale) + classical Core Image sharpen/denoise"})
+        choice.pop("NAFNetDeblur")
+    manifest["deferred"] = deferred
     for name, variant in choice.items():
         src = os.path.join(args.out, "mlpackages", f"{name}{'' if variant == 'fp16' else '-int8'}.mlpackage")
         dst = os.path.join(rel, f"{name}.mlpackage.zip")

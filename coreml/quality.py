@@ -128,6 +128,25 @@ def run_sr(args, rep):
     rep["super_resolution"] = rows
 
 
+def nafnet_fns(ml):
+    """App procedure: pass 1 on the whole photo resized to 256x256 (mix 0) gives `stats`;
+    pass 2 runs every tile with context = stats, mix = 1."""
+    def context(img):
+        small = Image.fromarray(img).resize((256, 256), Image.BICUBIC)
+        r = ml.predict({"image": small, "context": np.zeros((1, N_STATS), np.float16), "mix": np.zeros((1, 1), np.float16)})
+        return np.asarray(r["stats"], np.float16)
+
+    def tile_with(ctx, mix):
+        def fn(t):
+            r = ml.predict({"image": Image.fromarray(t), "context": ctx, "mix": np.full((1, 1), mix, np.float16)})
+            return np.asarray(r["result"].convert("RGB"))
+        return fn
+    return context, tile_with
+
+
+N_STATS = 8384
+
+
 def run_deblur(args, rep):
     variants = {}
     for v, fn in (("fp16", "NAFNetDeblur.mlpackage"), ("int8", "NAFNetDeblur-int8.mlpackage")):
@@ -135,6 +154,7 @@ def run_deblur(args, rep):
         if os.path.exists(p):
             variants[v] = load_ml(p)
     torch_w, _ = build_torch("NAFNetDeblur", args.weights)
+    base = torch_w.net
     rows = []
     for i, f in enumerate(sorted(glob.glob(os.path.join(args.samples, "color", "*.jpg")))):
         name = os.path.splitext(os.path.basename(f))[0]
@@ -146,21 +166,34 @@ def run_deblur(args, rep):
                "psnr_blurred_vs_sharp": psnr(blurred, sharp), "ssim_blurred_vs_sharp": ssim(blurred, sharp)}
         outs = {}
         for v, (ml, cu) in variants.items():
+            context, tile_with = nafnet_fns(ml)
             t = time.perf_counter()
-            outs[v] = tiling.run_tiled(blurred, tile_fn(ml), t=256, o=OVERLAP, s=1)
+            ctx = context(blurred)
+            outs[v] = tiling.run_tiled(blurred, tile_with(ctx, 1.0), t=256, o=OVERLAP, s=1)
             row[f"seconds_tiled_{v}"] = round(time.perf_counter() - t, 2)
             row[f"psnr_{v}_vs_sharp"] = psnr(outs[v], sharp)
             row[f"ssim_{v}_vs_sharp"] = ssim(outs[v], sharp)
             save(outs[v], os.path.join(args.out, "quality", "deblur", f"{name}_nafnet_{v}.png"))
+            # broken-tile detector: legit deblur changes a 256 block by <= ~10/255 on average,
+            # the known failure (exploding deep blocks) by >= 70/255
+            hh, ww = blurred.shape[:2]
+            diffs = [float(np.abs(outs[v][y:y + 256, x:x + 256].astype(np.float32) - blurred[y:y + 256, x:x + 256]).mean())
+                     for y in range(0, hh, 128) for x in range(0, ww, 128)]
+            row[f"max_block_change_{v}"] = max(diffs)
+            row[f"broken_blocks_{v}"] = int(sum(d > 30 for d in diffs))
+            if v == "fp16":
+                # what plain per-tile NAFNet (no global context) does, to document the failure mode
+                plain = tiling.run_tiled(blurred, tile_with(ctx, 0.0), t=256, o=OVERLAP, s=1)
+                row["psnr_fp16_no_context_vs_sharp"] = psnr(plain, sharp)
+                save(plain, os.path.join(args.out, "quality", "deblur", f"{name}_nafnet_fp16_no_context.png"))
         if "int8" in outs:
             row["psnr_int8_vs_fp16"] = psnr(outs["int8"], outs["fp16"])
             row["ssim_int8_vs_fp16"] = ssim(outs["int8"], outs["fp16"])
-        # seam/tiling check against whole-image torch (differs a little by design: SCA pools per tile)
         with torch.no_grad():
             h, w = blurred.shape[:2]
             ph, pw = (16 - h % 16) % 16, (16 - w % 16) % 16
             x = torch.from_numpy(np.pad(blurred, ((0, ph), (0, pw), (0, 0)), mode="edge").astype(np.float32) / 255).permute(2, 0, 1)[None]
-            full = torch_w(x)[0].permute(1, 2, 0).numpy()[:h, :w]
+            full = base(x)[0].permute(1, 2, 0).numpy()[:h, :w] * 255.0
         full = np.clip(np.rint(full), 0, 255).astype(np.uint8)
         row["psnr_torch_whole_image_vs_sharp"] = psnr(full, sharp)
         row["psnr_tiled_fp16_vs_whole_image_torch"] = psnr(outs["fp16"], full)
@@ -170,6 +203,9 @@ def run_deblur(args, rep):
         ims = [blurred[c], outs["fp16"][c]] + ([outs["int8"][c]] if "int8" in outs else []) + [sharp[c]]
         labs = ["input (synthetic motion blur)", "NAFNetDeblur fp16 (Core ML)"] + (["8-bit weights"] if "int8" in outs else []) + ["original"]
         save_preview(panel(ims, labs, height=448), os.path.join(args.out, "preview", f"deblur_{name}.jpg"))
+        # whole-photo overview: blurred | deblurred (catches any broken tile anywhere)
+        save_preview(panel([blurred, outs["fp16"]], ["input (synthetic motion blur)", "NAFNetDeblur, whole photo"], height=640),
+                     os.path.join(args.out, "preview", f"deblur_{name}_whole.jpg"))
         rows.append(row)
         print(json.dumps(row), flush=True)
     rep["deblur"] = rows
