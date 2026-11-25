@@ -5,12 +5,11 @@ Each step prints what it did and keeps going if one step fails, so one run shows
 Does NOT submit for review.
 """
 import json
-import os
 from pathlib import Path
 
 from asc import api, pages
 
-APP_ID = os.environ.get("ASC_APP_ID", "")
+APP_ID = "6839258428"
 ROOT = Path(".")
 LIST = ROOT / "docs" / "store" / "listing"
 

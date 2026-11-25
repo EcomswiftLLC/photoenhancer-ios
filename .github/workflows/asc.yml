@@ -43,7 +43,6 @@ jobs:
           METHOD: ${{ inputs.method }}
           APIPATH: ${{ inputs.path }}
           BODY: ${{ inputs.body }}
-          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
         run: |
           export ASC_KEY_PATH="$RUNNER_TEMP/keys/AuthKey.p8"
           if [ "$MODE" = "job" ]; then
