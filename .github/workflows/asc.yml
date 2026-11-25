@@ -1,0 +1,56 @@
+name: ASC API
+
+# Manual. Runs one App Store Connect API call or one job script from tools/asc_jobs, with the key from the repo secrets.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "call or job"
+        required: true
+        default: "call"
+      method:
+        description: "HTTP method (call mode)"
+        required: false
+        default: "GET"
+      path:
+        description: "API path (call mode) or job file (job mode)"
+        required: true
+      body:
+        description: "JSON body (call mode)"
+        required: false
+        default: ""
+
+jobs:
+  asc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: pip install --quiet pyjwt cryptography requests
+      - name: Write key
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          echo "$KEY_B64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey.p8"
+          chmod 600 "$RUNNER_TEMP/keys/AuthKey.p8"
+      - name: Run
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          MODE: ${{ inputs.mode }}
+          METHOD: ${{ inputs.method }}
+          APIPATH: ${{ inputs.path }}
+          BODY: ${{ inputs.body }}
+          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+        run: |
+          export ASC_KEY_PATH="$RUNNER_TEMP/keys/AuthKey.p8"
+          if [ "$MODE" = "job" ]; then
+            python tools/asc.py job "$APIPATH" | tee asc-output.txt
+          else
+            python tools/asc.py call "$METHOD" "$APIPATH" "$BODY" | tee asc-output.txt
+          fi
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
