@@ -91,6 +91,32 @@ jobs:
           source .venv/bin/activate
           python coreml/convert.py --weights build/weights --samples build/samples --out build --only "${{ inputs.only }}"
 
+      - name: Core ML check in the iOS Simulator (DDColor)
+        continue-on-error: true
+        run: |
+          set +e
+          source .venv/bin/activate
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1); sudo xcode-select -s "$XC"
+          mkdir -p build/simcheck build/report
+          python - <<'PY'
+          from PIL import Image; import glob
+          fs = sorted(glob.glob('build/samples/bw/*.jpg')) + sorted(glob.glob('build/samples/color/*.jpg'))[:1]
+          for i, f in enumerate(fs):
+              Image.open(f).convert('RGB').resize((512, 512), Image.BICUBIC).save(f'build/simcheck/in{i}.png')
+          PY
+          for p in build/mlpackages/DDColorTiny*.mlpackage; do xcrun coremlcompiler compile "$p" build/simcheck/ >/dev/null; done
+          ls build/simcheck
+          xcrun swiftc -O coreml/simcheck/main.swift -o build/simcheck/simcheck_mac
+          SDK=$(xcrun --sdk iphonesimulator --show-sdk-path)
+          xcrun swiftc -O -sdk "$SDK" -target arm64-apple-ios17.0-simulator coreml/simcheck/main.swift -o build/simcheck/simcheck_sim
+          UDID=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]{36})\).*//')
+          echo "Simulator: $UDID"
+          xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b >/dev/null
+          for m in build/simcheck/*.mlmodelc; do for img in build/simcheck/*.png; do
+            echo "mac $(basename $img) $(build/simcheck/simcheck_mac $PWD/$m $PWD/$img cpuOnly)"
+            echo "sim $(basename $img) $(xcrun simctl spawn $UDID $PWD/build/simcheck/simcheck_sim $PWD/$m $PWD/$img cpuOnly 2>&1 | tail -1)"
+          done; done | tee build/report/simcheck.txt
+
       - name: Quality run (tiled, real photos)
         if: ${{ inputs.only == '' }}
         run: |

@@ -123,7 +123,7 @@ def main():
         choice.pop("NAFNetDeblur")
     manifest["deferred"] = deferred
     for name, variant in choice.items():
-        src = os.path.join(args.out, "mlpackages", f"{name}{'' if variant == 'fp16' else '-int8'}.mlpackage")
+        src = os.path.join(args.out, "mlpackages", f"{name}{'' if variant == 'fp16' else '-' + variant}.mlpackage")
         dst = os.path.join(rel, f"{name}.mlpackage.zip")
         zip_dir(src, dst, f"{name}.mlpackage")
         spec = MODELS[name]
@@ -131,7 +131,9 @@ def main():
         entry = {
             "name": name, "file": os.path.basename(dst), "unzips_to": f"{name}.mlpackage",
             "sha256": sha256(dst), "zip_size_bytes": os.path.getsize(dst), "mlpackage_size_bytes": dir_size(src),
-            "precision": "float16 activations, " + ("float16 weights" if variant == "fp16" else "8-bit linear symmetric weights (per-channel), float16 compute"),
+            "precision": {"fp16": "float16 weights and compute",
+                          "int8": "8-bit linear symmetric weights (per-channel), float16 compute",
+                          "fp32c": "8-bit linear symmetric weights (per-channel), FLOAT32 compute (CPU/GPU; fp16 paths broke DDColor)"}[variant],
             "licence": spec["licence"], "source": spec["source"], "description": spec["description"],
             "upstream_weights": {"file": spec["weights"], "sha256": WEIGHTS[spec["weights"]]["sha256"]},
             **CONTRACT[name],

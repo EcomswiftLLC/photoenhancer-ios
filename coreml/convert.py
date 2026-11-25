@@ -28,7 +28,8 @@ import coremltools.optimize as cto
 VARIANTS = {
     "ESRGANGeneral": ["fp16"],
     "NAFNetDeblur": ["fp16", "int8"],
-    "DDColorTiny": ["fp16", "int8"],
+    # fp32c = fp32 compute precision with 8-bit weights (same size as int8; runs on CPU/GPU, not ANE)
+    "DDColorTiny": ["fp16", "int8", "fp32c"],
 }
 
 
@@ -219,6 +220,8 @@ def main():
                 ml = ml16
             elif v == "int8":
                 ml = quantize_int8(ml16)
+            elif v == "fp32c":
+                ml = quantize_int8(convert(name, wrapper, example, ct.precision.FLOAT32))
             else:
                 ml = convert(name, wrapper, example, ct.precision.FLOAT32)
             path = os.path.join(mdir, f"{name}{'' if v == 'fp16' else '-' + v}.mlpackage")
