@@ -50,7 +50,7 @@ AI UPSCALE 2x, 4x AND 8x
 - Large photos are processed in tiles, so even big files stay smooth on your device
 
 UNBLUR AND SHARPEN
-- Unblur reduces motion blur and camera shake with an AI deblur model
+- Unblur reduces mild blur and camera shake with an on-device AI pass plus sharpening
 - Sharpen with a strength slider for photos that are only a little soft
 - Honest note: heavy blur can improve, but detail that the camera never captured cannot be brought back
 
@@ -95,7 +95,7 @@ Support: support@ecomswiftllc.com
 
 Facts behind the wording (re-verify against the shipped build before every submission and edit the copy if a feature was
 cut or renamed): 2x/4x/8x, 8x capped at 8192 px long side and 48 MP with a notice (docs/ARCHITECTURE.md feature 1);
-tiled processing; NAFNet deblur plus Core Image sharpen; super-resolution supersample denoise with strength; Vision face
+tiled processing; AI upscale pass plus Core Image sharpen; super-resolution supersample denoise with strength; Vision face
 crops plus super-resolution (no generative face model); DDColor colorize on the full-resolution L channel; classical
 restore (scratch/dust, fade, de-yellow); auto fix; compare slider with synced zoom and hold-for-original; batch with
 per-item progress and cancel, one ad per batch; JPG/PNG/HEIC, size options, quality slider, EXIF keep/strip including GPS;

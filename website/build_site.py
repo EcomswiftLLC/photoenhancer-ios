@@ -335,7 +335,7 @@ HOW = [
      "Upscaling predicts plausible texture. It makes a photo larger and cleaner, but it is not the original detail of the scene."),
     ("Unblur and Sharpen", "street-sign-motion-blur", False,
      "A copy of a street sign photo with sideways camera shake added by us.",
-     "Unblur uses an AI deblur model to reduce motion blur and camera shake. Sharpen is a lighter tool with a strength slider for photos that are only a little soft.",
+     "Unblur reduces mild blur and camera shake with an on-device AI pass plus sharpening. Sharpen is a lighter tool with a strength slider for photos that are only a little soft.",
      "Heavy blur can improve, but detail the camera never captured cannot be brought back."),
     ("Remove noise", "tabby-cat-noisy", False,
      "A darker copy of a cat photo with sensor-style noise added by us.",

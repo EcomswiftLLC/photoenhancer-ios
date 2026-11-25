@@ -6,7 +6,7 @@ AI UPSCALE 2x, 4x AND 8x
 - Large photos are processed in tiles, so even big files stay smooth on your device
 
 UNBLUR AND SHARPEN
-- Unblur reduces motion blur and camera shake with an AI deblur model
+- Unblur reduces mild blur and camera shake with an on-device AI pass plus sharpening
 - Sharpen with a strength slider for photos that are only a little soft
 - Honest note: heavy blur can improve, but detail that the camera never captured cannot be brought back
 
