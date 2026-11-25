@@ -97,7 +97,8 @@ DDColorTiny
 2. Read `ab`: `prediction.featureValue(for: "ab")!.multiArrayValue!`, dataType `.float16`, shape `[1, 2, 512, 512]`; read it with `multiArray.withUnsafeBytes { ... }` (or `withUnsafeBufferPointer(ofType: Float16.self)`) honouring `strides`. Do NOT use `dataPointer`: the Float16 output is pixel-buffer backed and `dataPointer` reads zeros (gray result) - found by the APP agent in CI. Channel 0 = a*, channel 1 = b*, OpenCV float Lab units (about -128...127).
 3. Upscale a* and b* bilinearly to the original image size.
 4. Compute L* of the ORIGINAL full-resolution image and combine Lab(L*, a*, b*) -> sRGB (formulas below). Clamp to 0...1.
-5. Optional strength slider: blend a*, b* by `s` (0 = gray, 1 = full colour).
+5. Collapse fallback (REQUIRED). On some sharp, high-detail old prints DDColor tiny outputs almost no colour (mean |ab| < 0.2 with a few wild outliers). This is a property of the upstream model: the unmodified PyTorch pipeline gives identical numbers, e.g. on the APP agent's old-street-1864 / old-portrait-1859 inputs from run 45647615294. Lightly blurring the MODEL INPUT fixes it, and ab is low-frequency anyway since it is combined with the full-res L. Procedure: compute mean(|a|+|b|)/2 over the 512x512 output; if < 1.5, re-run with the 512x512 input Gaussian-blurred sigma 1.5 px (CIGaussianBlur radius 1.5, clamp to extent); if still < 1.5, sigma 2.5. Use the first result >= 1.5, otherwise report "no colours found". Do NOT blur by default: on photos that colorize normally it adds a warm/orange cast. Measured mean|ab| with sigma 0 / 1.5 / 2.0 / 3.0 (torch): street 0.09 / 6.1 / 7.0 / 8.7, portrait 0.25 / 1.5 / 14.9 / 11.3.
+6. Optional strength slider: blend a*, b* by `s` (0 = gray, 1 = full colour).
 
 Lab <-> sRGB (D65, identical to OpenCV `COLOR_RGB2Lab` / `COLOR_Lab2RGB` on float images; use these exact constants):
 ```
