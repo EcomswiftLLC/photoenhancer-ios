@@ -132,7 +132,7 @@ private struct StoreExportScreen: View {
                 return (UIImage(cgImage: base), UIImage(cgImage: output.image))
             }.value
             let export = ExportModel(asset: asset, recipe: recipe, size: .factor(ai ? 2 : 1), before: pair?.0, after: pair?.1)
-            export.options.format = .heic.isSupported ? .heic : .jpg
+            export.options.format = ImageFormat.heic.isSupported ? ImageFormat.heic : ImageFormat.jpg
             model = export
         }
     }
