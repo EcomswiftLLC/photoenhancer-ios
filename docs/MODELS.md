@@ -90,7 +90,7 @@ NAFNetDeblur - not in models-v1 (deferred, see above). If a later release adds i
 
 DDColorTiny
 1. Resize the whole photo (colour or B&W) to exactly 512x512 (stretch, no aspect preservation - this is what upstream does). Feed as `image`. The graph converts it to gray itself (CIE L* of sRGB, D65), so no gray conversion is needed in the app.
-2. Read `ab`: `prediction.featureValue(for: "ab")!.multiArrayValue!`, dataType `.float16`, shape `[1, 2, 512, 512]`; read with `withUnsafeBufferPointer(ofType: Float16.self)` honouring `strides`. Channel 0 = a*, channel 1 = b*, OpenCV float Lab units (about -128...127).
+2. Read `ab`: `prediction.featureValue(for: "ab")!.multiArrayValue!`, dataType `.float16`, shape `[1, 2, 512, 512]`; read it with `multiArray.withUnsafeBytes { ... }` (or `withUnsafeBufferPointer(ofType: Float16.self)`) honouring `strides`. Do NOT use `dataPointer`: the Float16 output is pixel-buffer backed and `dataPointer` reads zeros (gray result) - found by the APP agent in CI. Channel 0 = a*, channel 1 = b*, OpenCV float Lab units (about -128...127).
 3. Upscale a* and b* bilinearly to the original image size.
 4. Compute L* of the ORIGINAL full-resolution image and combine Lab(L*, a*, b*) -> sRGB (formulas below). Clamp to 0...1.
 5. Optional strength slider: blend a*, b* by `s` (0 = gray, 1 = full colour).
