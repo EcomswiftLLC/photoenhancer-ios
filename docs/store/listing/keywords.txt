@@ -1,0 +1,1 @@
+ai,quality,restore,old,colorize,blurry,fix,resolution,clear,denoise,4k,pixel,face,clarity,picture

@@ -1,0 +1,49 @@
+Make your photos sharper, cleaner and larger. Clarivo upscales, unblurs, removes noise, colorizes black-and-white photos and restores faded prints, right on your iPhone or iPad. Your photos are processed on your device and never uploaded. It is free and there is no account.
+
+AI UPSCALE 2x, 4x AND 8x
+- Enlarge small or cropped photos with an on-device AI model that adds fine, natural-looking texture as it scales
+- 8x works in two passes up to 8192 pixels on the long side; Clarivo tells you when a photo had to be reduced first
+- Large photos are processed in tiles, so even big files stay smooth on your device
+
+UNBLUR AND SHARPEN
+- Unblur reduces motion blur and camera shake with an AI deblur model
+- Sharpen with a strength slider for photos that are only a little soft
+- Honest note: heavy blur can improve, but detail that the camera never captured cannot be brought back
+
+REMOVE NOISE
+- Clean up grain from low light and high ISO, with a strength slider that blends with the original
+
+PORTRAIT
+- Sharpens faces it finds in the photo and blends them back smoothly. It enhances what is there; it does not invent or change faces
+
+COLORIZE BLACK-AND-WHITE PHOTOS
+- Adds natural-looking colour to old black-and-white photos with an AI colorize model, while keeping the full resolution of the original. Colours are an estimate, not a historical record
+
+RESTORE OLD PHOTOS
+- Reduce scratches and dust, lift fading and remove the yellow cast of old prints
+
+AUTO FIX
+- One tap to balance light and colour, with a strength slider
+
+COMPARE BEFORE AND AFTER
+- Drag the slider, pinch to zoom on both sides at once, or touch and hold to see the original
+
+BATCH
+- Enhance many photos with the same settings, with progress for each photo and a cancel button
+
+EXPORT YOUR WAY
+- JPG, PNG or HEIC, original size, 2x, 4x, 8x or a custom size, and a quality slider
+- Keep or remove photo metadata, including location
+- Save to Photos, save to Files or share. No watermark
+
+PRIVATE BY DESIGN
+Every photo is processed on your device. Clarivo never uploads your photos, has no account and needs no photo library access to open a photo: you choose each photo in Apple's picker. It only asks for permission to add photos when you save.
+
+FREE, WITH ADS
+Clarivo is free. It shows a small banner on the home screen and a short video ad before you save or share a result; you always see your finished photo first. A whole batch needs one ad. If no ad is available, you can save for free. Ads are shown by Google AdMob; your photos are never shared with them.
+
+Works on iPhone and iPad with iOS 17 or later.
+
+Terms of use: https://ecomswiftllc.github.io/clarivo/terms/
+Privacy policy: https://ecomswiftllc.github.io/clarivo/privacy/
+Support: support@ecomswiftllc.com
