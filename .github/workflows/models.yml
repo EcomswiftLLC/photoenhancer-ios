@@ -1,0 +1,123 @@
+name: Core ML models (convert, verify, publish models-v1)
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Upload zipped mlpackages + models-manifest.json to release models-v1"
+        type: boolean
+        default: true
+      nafnet_variant:
+        description: "NAFNetDeblur weights shipped"
+        type: choice
+        options: [fp16, int8]
+        default: fp16
+      ddcolor_variant:
+        description: "DDColorTiny weights shipped"
+        type: choice
+        options: [int8, fp16]
+        default: int8
+
+permissions:
+  contents: write
+
+concurrency:
+  group: models
+  cancel-in-progress: false
+
+env:
+  # piddnad/DDColor (Apache-2.0) architecture code, pinned
+  DDCOLOR_COMMIT: 2adb63f2656ac41cbdf7b894cddd94121a3faf13
+  DDCOLOR_SRC: ${{ github.workspace }}/build/DDColor
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  models:
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: coreml/requirements.txt
+
+      - name: Python deps
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r coreml/requirements.txt
+          python -c "import torch, coremltools, numpy; print(torch.__version__, coremltools.__version__, numpy.__version__)"
+          sysctl -n machdep.cpu.brand_string; sw_vers
+
+      - name: DDColor architecture source (pinned)
+        run: |
+          git init -q build/DDColor
+          cd build/DDColor
+          git remote add origin https://github.com/piddnad/DDColor
+          git fetch -q --depth 1 origin "$DDCOLOR_COMMIT"
+          git checkout -q FETCH_HEAD
+          git log -1 --format='%H %cd'
+
+      - uses: actions/cache@v4
+        with:
+          path: build/weights
+          key: weights-v1-8dc7edb9-19394e61-81dd6439
+
+      - name: Download weights (sha256 verified)
+        run: |
+          source .venv/bin/activate
+          python coreml/fetch_weights.py build/weights
+          cat build/weights/weights-sources.json
+
+      - name: Download real test photos (Wikimedia Commons)
+        run: |
+          source .venv/bin/activate
+          python coreml/fetch_samples.py build/samples
+
+      - name: Convert + verify against PyTorch + latency
+        run: |
+          source .venv/bin/activate
+          python coreml/convert.py --weights build/weights --samples build/samples --out build
+
+      - name: Quality run (tiled, real photos)
+        run: |
+          source .venv/bin/activate
+          python coreml/quality.py --weights build/weights --samples build/samples --out build
+
+      - name: Package + manifest
+        run: |
+          source .venv/bin/activate
+          python coreml/publish.py --out build --nafnet "${{ inputs.nafnet_variant }}" --ddcolor "${{ inputs.ddcolor_variant }}"
+          ls -la build/release
+          cp build/samples/sources.json build/report/sample-sources.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: models-report
+          path: |
+            build/report
+            build/preview
+            build/release/models-manifest.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: models-quality-full
+          path: build/quality
+          retention-days: 7
+
+      - name: Publish release models-v1
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view models-v1 >/dev/null 2>&1; then
+            gh release create models-v1 --title "Core ML models v1" --notes "Converted Core ML models for Clarivo. See docs/MODELS.md and models-manifest.json." --latest=false
+          fi
+          gh release upload models-v1 build/release/*.zip build/release/models-manifest.json --clobber
+          gh release view models-v1 --json assets --jq '.assets[] | "\(.name) \(.size)"'
