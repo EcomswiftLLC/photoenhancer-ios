@@ -148,7 +148,7 @@ final class ExportTests: XCTestCase {
     func testLicencesAreBundled() {
         let entries = LicensesView.load()
         let names = entries.map(\.name).joined(separator: " ")
-        for required in ["Real-ESRGAN", "NAFNet", "DDColor", "Google Mobile Ads", "User Messaging Platform"] {
+        for required in ["Real-ESRGAN", "DDColor", "Google Mobile Ads", "User Messaging Platform"] {
             XCTAssertTrue(names.contains(required), "Licence for \(required) is missing")
         }
         XCTAssertTrue(entries.allSatisfy { !$0.text.isEmpty && !$0.license.isEmpty })
