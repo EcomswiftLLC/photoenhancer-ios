@@ -9,6 +9,7 @@ struct ExportView: View {
     @Environment(\.requestReview) private var requestReview
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var divider: Double = 0.5
+    @FocusState private var customFocused: Bool
 
     init(model: ExportModel) {
         _model = StateObject(wrappedValue: model)
@@ -48,6 +49,13 @@ struct ExportView: View {
                         dismiss()
                     }
                     .foregroundStyle(CV.Palette.glacier)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Set size") {
+                        customFocused = false
+                        model.customChanged()
+                    }
                 }
             }
             .sheet(isPresented: Binding(get: { model.shareURLs != nil }, set: { if !$0 { model.shareURLs = nil } })) {
@@ -126,13 +134,14 @@ struct ExportView: View {
                         Spacer()
                         TextField("Pixels", value: $model.customLongSide, format: .number)
                             .keyboardType(.numberPad)
+                            .focused($customFocused)
                             .multilineTextAlignment(.trailing)
                             .font(CV.Font.readout)
                             .frame(maxWidth: 120, minHeight: 44)
                             .padding(.horizontal, CV.Space.s)
                             .background(CV.Palette.raised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                             .onSubmit { model.customChanged() }
-                            .onChange(of: model.customLongSide) { _, _ in model.customChanged() }
+                            .onChange(of: model.customLongSide) { _, _ in model.customTyped() }
                             .accessibilityLabel(Text("Long side in pixels"))
                         Text("px").font(CV.Font.callout).foregroundStyle(CV.Palette.mist)
                     }

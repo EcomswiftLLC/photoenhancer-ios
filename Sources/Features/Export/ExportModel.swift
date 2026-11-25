@@ -92,6 +92,12 @@ final class ExportModel: ObservableObject {
         }
     }
 
+    /// While typing: follow the number without fighting the keyboard (it is clamped when typing ends or on export).
+    func customTyped() {
+        guard case .custom = options.size, customLongSide >= 64 else { return }
+        options.size = .custom(min(customLongSide, SizeCap.maxLongSide))
+    }
+
     func customChanged() {
         customLongSide = min(max(customLongSide, 64), SizeCap.maxLongSide)
         if case .custom = options.size { options.size = .custom(customLongSide) }
@@ -124,6 +130,7 @@ final class ExportModel: ObservableObject {
     // MARK: Running
 
     func perform(_ action: Action) {
+        customChanged()
         guard !isBusy, blockedReason == nil else { return }
         if action == .photos {
             generation += 1
