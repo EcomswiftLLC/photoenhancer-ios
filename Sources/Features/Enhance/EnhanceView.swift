@@ -228,6 +228,9 @@ struct EnhanceView: View {
             .overlay(alignment: .topTrailing) {
                 if on {
                     Circle().fill(CV.Palette.glacier).frame(width: 7, height: 7).offset(x: 4, y: -2)
+                } else if !available {
+                    Image(systemName: "lock.fill").font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(CV.Palette.mist).offset(x: 6, y: -4)
                 }
             }
             .accessibilityHidden(true)

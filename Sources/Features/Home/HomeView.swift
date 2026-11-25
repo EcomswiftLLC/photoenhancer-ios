@@ -242,7 +242,7 @@ struct HomeView: View {
                 .cvDisplay(34)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            Text("Upscale, unblur, denoise, colorize and restore with AI that runs on this device.")
+            Text("Upscale, unblur, remove noise, colorize and restore with AI that runs on this device.")
                 .font(CV.Font.body)
                 .foregroundStyle(CV.Palette.mist)
                 .fixedSize(horizontal: false, vertical: true)

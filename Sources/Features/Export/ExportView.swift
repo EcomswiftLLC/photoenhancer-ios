@@ -146,6 +146,11 @@ struct ExportView: View {
                         Text("px").font(CV.Font.callout).foregroundStyle(CV.Palette.mist)
                     }
                 }
+                if !model.upscaleAvailable {
+                    Label("2×, 4× and 8× need the upscale model, which is not in this build.", systemImage: "lock")
+                        .font(CV.Font.caption).foregroundStyle(CV.Palette.mist)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 let summary = model.sizeSummary
                 Text(summary.text).font(CV.Font.readout).foregroundStyle(CV.Palette.pearl)
                 if summary.capped {

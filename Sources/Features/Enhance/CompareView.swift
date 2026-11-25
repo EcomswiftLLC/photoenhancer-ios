@@ -16,7 +16,10 @@ struct CompareView: View {
     @State private var offset: CGSize = .zero
     @State private var panStart: CGSize?
     @State private var didApplyInitialZoom = false
-    @GestureState private var holding = false
+    @GestureState private var holdingGesture = false
+    /// VoiceOver and keyboard alternative to touch and hold.
+    @State private var showingOriginal = false
+    private var holding: Bool { holdingGesture || showingOriginal }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let maxZoom: CGFloat = 8
@@ -84,6 +87,9 @@ struct CompareView: View {
             }
         }
         .accessibilityAddTraits(.isImage)
+        .accessibilityAction(named: Text(showingOriginal ? "Show result" : "Show original")) {
+            showingOriginal.toggle()
+        }
     }
 
     private var imageAspect: CGFloat {
@@ -166,7 +172,7 @@ struct CompareView: View {
     private var holdGesture: some Gesture {
         LongPressGesture(minimumDuration: 0.35, maximumDistance: 10)
             .sequenced(before: DragGesture(minimumDistance: 0))
-            .updating($holding) { value, state, _ in
+            .updating($holdingGesture) { value, state, _ in
                 if case .second(true, _) = value { state = true }
             }
     }

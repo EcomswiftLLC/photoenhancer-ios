@@ -58,7 +58,7 @@ struct ToolSettings: Equatable {
             case .oldPhoto: return "Restore, then colorize black-and-white prints."
             case .upscale2x: return "Twice the pixels, with auto fix."
             case .upscale4x: return "Four times the pixels."
-            case .cleanLowLight: return "AI denoise and auto fix."
+            case .cleanLowLight: return "AI noise removal, then auto fix."
             }
         }
 
