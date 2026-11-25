@@ -16,6 +16,8 @@ final class Enhancer: @unchecked Sendable {
     static var colorizeABScale: Float = 1
     /// What the last colorize run read from the model (type, shape, value ranges), for the quality report.
     static var lastColorizeDiagnostics = ""
+    /// Mean |a| + |b| below this means the colorize model produced no usable colour.
+    static let minimumColorizeChroma: Float = 1.0
 
     init(models: ModelProviding = BundleModelProvider.shared) {
         self.models = models
@@ -242,6 +244,9 @@ final class Enhancer: @unchecked Sendable {
                 + "mean|a| \(a.values.reduce(0) { $0 + abs($1) } / Float(max(1, a.values.count))) "
                 + "mean|b| \(b.values.reduce(0) { $0 + abs($1) } / Float(max(1, b.values.count))) "
                 + "pixelBuffer \(array.pixelBuffer != nil)"
+            // A model that returns (almost) no colour would only turn the photo grey: say so instead.
+            let meanChroma = (a.values.reduce(0) { $0 + abs($1) } + b.values.reduce(0) { $0 + abs($1) }) / Float(max(1, a.values.count))
+            if meanChroma < Self.minimumColorizeChroma { throw EnhanceError.noColourFound }
             let scale = Self.colorizeABScale
             return LabColor.merge(
                 lightnessOf: image,

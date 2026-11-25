@@ -148,6 +148,8 @@ enum EnhanceError: Error, Equatable {
     /// The model ran but returned something unexpected.
     case modelFailed(String)
     case writeFailed
+    /// The colorize model returned (almost) no colour, so the photo would only turn grey.
+    case noColourFound
 
     var message: String {
         switch self {
@@ -162,6 +164,7 @@ enum EnhanceError: Error, Equatable {
         case .memoryPressure: return "Your device ran low on memory, so Clarivo stopped. Try a smaller size or close other apps."
         case .modelFailed: return "The enhancement did not finish. Try again, or choose a smaller size."
         case .writeFailed: return "The file could not be written. Free some space and try again."
+        case .noColourFound: return "Colorize found no colours it could add to this photo, so nothing was changed."
         }
     }
 }

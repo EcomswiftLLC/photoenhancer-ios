@@ -1,6 +1,7 @@
 import XCTest
 import CoreGraphics
 import ImageIO
+import CoreML
 @testable import Clarivo
 
 /// Runs every model (and the classical tools) on the bundled samples, records time and peak memory per image, and writes
@@ -79,6 +80,12 @@ final class QualityPerformanceTests: XCTestCase {
                 try writePNG(input, name: "\(item.name)-before.png")
                 try writePNG(output.image, name: "\(item.name)-after.png")
                 try writeComparison(before: input, after: output.image, name: "\(item.name)-compare.png")
+            } catch EnhanceError.noColourFound {
+                // Recorded, not a test failure: the model ran, it just returned no colour (see colorizeOutput).
+                _ = sampler.stop()
+                row["status"] = "no colour from the model"
+                row["seconds"] = (Date().timeIntervalSince(started) * 100).rounded() / 100
+                row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics
             } catch {
                 _ = sampler.stop()
                 row["status"] = "failed: \(error)"
@@ -87,6 +94,7 @@ final class QualityPerformanceTests: XCTestCase {
             rows.append(row)
             BundleModelProvider.shared.unloadAll()
         }
+        rows.append(contentsOf: await colorizeComputeUnitDiagnostics())
         let report: [String: Any] = [
             "note": "iOS Simulator on a GitHub macos-26 runner: no Neural Engine, Core ML runs on the CPU. Times are CPU times, not iPhone times. Peak = highest phys_footprint sampled every 20 ms during the run.",
             "models": results,
@@ -95,6 +103,36 @@ final class QualityPerformanceTests: XCTestCase {
         let json = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
         try json.write(to: outputFolder.appendingPathComponent("results.json"))
         print(String(data: json, encoding: .utf8) ?? "")
+    }
+
+    /// DDColor on each compute-unit setting, to see whether a colour collapse depends on the compute path.
+    private func colorizeComputeUnitDiagnostics() async -> [[String: Any]] {
+        guard let asset = PhotoAsset.sample(named: "old-street-1864"), let image = asset.decode(maxPixel: 1200),
+              let rgba = RGBAImage(cgImage: image) else { return [] }
+        var rows: [[String: Any]] = []
+        for (name, units) in [("cpuOnly", MLComputeUnits.cpuOnly), ("cpuAndGPU", .cpuAndGPU), ("all", .all)] {
+            let provider = BundleModelProvider(bundle: .main)
+            provider.computeUnits = units
+            guard provider.isAvailable(.colorize) else { continue }
+            let enhancer = Enhancer(models: provider)
+            var row: [String: Any] = ["case": "colorize-diagnostic-\(name)"]
+            do {
+                let out = try await enhancer.colorize(rgba, cancel: CancelToken())
+                row["status"] = "ok"
+                row["meanChannelSpread"] = Self.channelSpread(out)
+            } catch {
+                row["status"] = "\(error)"
+            }
+            row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics
+            rows.append(row)
+        }
+        return rows
+    }
+
+    static func channelSpread(_ image: RGBAImage) -> Double {
+        var sum = 0
+        for i in stride(from: 0, to: image.pixels.count, by: 4) { sum += abs(Int(image.pixels[i]) - Int(image.pixels[i + 2])) }
+        return Double(sum) / Double(max(1, image.pixelCount))
     }
 
     private func writePNG(_ image: CGImage, name: String) throws {

@@ -278,7 +278,10 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: CV.Space.s) {
                 CVSectionTitle(text: "Try a sample")
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CV.Space.s), count: columns), spacing: CV.Space.s) {
-                    ForEach(model.samples) { card in
+                    // Whole rows only, so the grid never ends on a lone tile.
+                    let shown = model.samples.count > columns
+                        ? Array(model.samples.prefix(model.samples.count / columns * columns)) : model.samples
+                    ForEach(shown) { card in
                         Button {
                             guard let asset = card.asset() else { return }
                             var initial: ToolSettings?
