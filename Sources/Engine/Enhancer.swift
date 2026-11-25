@@ -2,6 +2,7 @@ import Foundation
 import CoreGraphics
 import CoreML
 import Vision
+import CoreImage
 
 /// Runs a recipe of enhancement steps on a photo. Pure engine: no UI. Call it off the main thread.
 final class Enhancer: @unchecked Sendable {
@@ -18,8 +19,26 @@ final class Enhancer: @unchecked Sendable {
     static var lastColorizeDiagnostics = ""
     /// The exact model input of the last colorize run (quality report only).
     static var lastColorizeInput: CGImage?
-    /// Mean |a| + |b| below this means the colorize model produced no usable colour.
-    static let minimumColorizeChroma: Float = 1.0
+    /// mean((|a| + |b|) / 2) below this means the colorize model produced no usable colour.
+    static let minimumColorizeStrength: Float = 1.5
+    /// Gaussian blur sigmas (model-input pixels) tried in turn on a colourless result.
+    static let colorizeRetryBlurs: [Double] = [0, 1.5, 2.5]
+
+    static func meanColour(_ a: [Float], _ b: [Float]) -> Float {
+        guard !a.isEmpty, a.count == b.count else { return 0 }
+        var sum: Float = 0
+        for i in 0..<a.count { sum += abs(a[i]) + abs(b[i]) }
+        return sum / Float(a.count) / 2
+    }
+
+    /// Gaussian blur of a small image (edges clamped, so the border does not darken).
+    static func blurred(_ image: RGBAImage, sigma: Double) -> RGBAImage? {
+        guard let cg = image.makeCGImage() else { return nil }
+        let ci = CIImage(cgImage: cg)
+        let out = ci.clampedToExtent().applyingGaussianBlur(sigma: sigma).cropped(to: ci.extent)
+        guard let rendered = ClassicalOps.render(out, extent: ci.extent) else { return nil }
+        return RGBAImage(cgImage: rendered)
+    }
 
     init(models: ModelProviding = BundleModelProvider.shared) {
         self.models = models
@@ -234,31 +253,39 @@ final class Enhancer: @unchecked Sendable {
         // The whole photo stretched to the model's input size; the model converts it to grey (L*) itself.
         var small = image.resized(width: spec.inputWidth, height: spec.inputHeight)
         small.makeOpaque()
-        Self.lastColorizeInput = ModelRunner.standardImage(small)
-        let input = try ModelRunner.inputValue(for: model, spec: spec, tile: small)
-        let provider = try MLDictionaryFeatureProvider(dictionary: [spec.inputName: input])
-        let result = try await model.prediction(from: provider)
-        guard let value = result.featureValue(for: spec.outputName) else { throw EnhanceError.modelFailed("No colorize output") }
-        try cancel.check()
-        if let array = value.multiArrayValue {
+        // DDColor tiny collapses to grey on some sharp, detailed old prints. Then the model input (only the small copy;
+        // the colour is laid under the full-resolution lightness afterwards) is blurred a little and predicted again
+        // (docs/MODELS.md, DDColorTiny step 5). Never blurred by default: that tints photos that colorize well.
+        var value: MLFeatureValue?
+        for sigma in Self.colorizeRetryBlurs {
+            try cancel.check()
+            let fed = sigma > 0 ? (Self.blurred(small, sigma: sigma) ?? small) : small
+            Self.lastColorizeInput = ModelRunner.standardImage(fed)
+            let input = try ModelRunner.inputValue(for: model, spec: spec, tile: fed)
+            let provider = try MLDictionaryFeatureProvider(dictionary: [spec.inputName: input])
+            let result = try await model.prediction(from: provider)
+            guard let out = result.featureValue(for: spec.outputName) else { throw EnhanceError.modelFailed("No colorize output") }
+            value = out
+            guard let array = out.multiArrayValue else { break }
             let a = try ModelRunner.plane(array, channel: 0)
             let b = try ModelRunner.plane(array, channel: 1)
-            Self.lastColorizeDiagnostics = "type \(array.dataType.rawValue) shape \(array.shape) strides \(array.strides) "
-                + "a[\(a.values.min() ?? 0), \(a.values.max() ?? 0)] b[\(b.values.min() ?? 0), \(b.values.max() ?? 0)] "
-                + "mean|a| \(a.values.reduce(0) { $0 + abs($1) } / Float(max(1, a.values.count))) "
-                + "mean|b| \(b.values.reduce(0) { $0 + abs($1) } / Float(max(1, b.values.count))) "
-                + "pixelBuffer \(array.pixelBuffer != nil)"
-            // A model that returns (almost) no colour would only turn the photo grey: say so instead.
-            let meanChroma = (a.values.reduce(0) { $0 + abs($1) } + b.values.reduce(0) { $0 + abs($1) }) / Float(max(1, a.values.count))
-            if meanChroma < Self.minimumColorizeChroma { throw EnhanceError.noColourFound }
-            let scale = Self.colorizeABScale
-            return LabColor.merge(
-                lightnessOf: image,
-                a: scale == 1 ? a.values : a.values.map { $0 * scale },
-                b: scale == 1 ? b.values : b.values.map { $0 * scale },
-                planeWidth: a.width, planeHeight: a.height
-            )
+            let strength = Self.meanColour(a.values, b.values)
+            Self.lastColorizeDiagnostics = "blur \(sigma) strength \(strength) "
+                + "a[\(a.values.min() ?? 0), \(a.values.max() ?? 0)] b[\(b.values.min() ?? 0), \(b.values.max() ?? 0)]"
+            if strength >= Self.minimumColorizeStrength {
+                let scale = Self.colorizeABScale
+                return LabColor.merge(
+                    lightnessOf: image,
+                    a: scale == 1 ? a.values : a.values.map { $0 * scale },
+                    b: scale == 1 ? b.values : b.values.map { $0 * scale },
+                    planeWidth: a.width, planeHeight: a.height
+                )
+            }
         }
+        try cancel.check()
+        guard let value else { throw EnhanceError.modelFailed("No colorize output") }
+        // An `ab` array that stayed (almost) colourless on every try: say so instead of returning a grey photo.
+        if value.multiArrayValue != nil { throw EnhanceError.noColourFound }
         if let buffer = value.imageBufferValue {
             // A model that returns a colour image: take its colour, keep the original lightness.
             let colour = try ModelRunner.rgba(from: buffer)

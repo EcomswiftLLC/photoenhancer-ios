@@ -111,9 +111,26 @@ final class QualityPerformanceTests: XCTestCase {
 
     /// DDColor on each compute-unit setting, to see whether a colour collapse depends on the compute path.
     private func colorizeComputeUnitDiagnostics() async -> [[String: Any]] {
-        guard let asset = PhotoAsset.sample(named: "old-street-1864"), let image = asset.decode(maxPixel: 1200),
-              let rgba = RGBAImage(cgImage: image) else { return [] }
         var rows: [[String: Any]] = []
+        // Control: colour photos and the other sample prints through the same path, cpuOnly.
+        for sample in ["portrait-man", "lake-autumn", "tabby-cat", "portrait-woman", "historic-building"] {
+            guard let asset = PhotoAsset.sample(named: sample), let image = asset.decode(maxPixel: 1200),
+                  let rgba = RGBAImage(cgImage: image) else { continue }
+            let provider = BundleModelProvider(bundle: .main)
+            provider.computeUnits = .cpuOnly
+            guard provider.isAvailable(.colorize) else { continue }
+            var row: [String: Any] = ["case": "colorize-control-\(sample)"]
+            do {
+                _ = try await Enhancer(models: provider).colorize(rgba, cancel: CancelToken())
+                row["status"] = "ok"
+            } catch {
+                row["status"] = "\(error)"
+            }
+            row["colorizeOutput"] = Enhancer.lastColorizeDiagnostics
+            rows.append(row)
+        }
+        guard let asset = PhotoAsset.sample(named: "old-street-1864"), let image = asset.decode(maxPixel: 1200),
+              let rgba = RGBAImage(cgImage: image) else { return rows }
         for (name, units) in [("cpuOnly", MLComputeUnits.cpuOnly), ("cpuAndGPU", .cpuAndGPU), ("all", .all)] {
             let provider = BundleModelProvider(bundle: .main)
             provider.computeUnits = units

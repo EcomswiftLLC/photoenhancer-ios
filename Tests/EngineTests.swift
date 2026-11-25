@@ -286,6 +286,16 @@ final class EngineTests: XCTestCase {
         XCTAssertEqual(big.height, 100)
     }
 
+    func testColorizeRetryHelpers() throws {
+        XCTAssertEqual(Enhancer.meanColour([2, -2], [0, 4]), 2, accuracy: 0.0001)
+        XCTAssertEqual(Enhancer.meanColour([], []), 0)
+        XCTAssertEqual(Enhancer.colorizeRetryBlurs.first, 0, "the first try is never blurred")
+        let sharp = TestImages.pattern(width: 64, height: 64)
+        let soft = try XCTUnwrap(Enhancer.blurred(sharp, sigma: 2))
+        XCTAssertEqual(soft.width, 64)
+        XCTAssertGreaterThan(TestImages.meanDifference(sharp, soft), 1)
+    }
+
     func testHalfFloatConversion() {
         XCTAssertEqual(halfToFloat(0x3C00), 1)
         XCTAssertEqual(halfToFloat(0xC000), -2)
