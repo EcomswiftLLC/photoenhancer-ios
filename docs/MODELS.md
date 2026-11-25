@@ -22,6 +22,9 @@ Upstream weights (sha256-pinned in `coreml/fetch_weights.py`):
 - `ddcolor_paper_tiny.pth` 81dd643904f4664c3718513e3320ae3db0c567f0d3e18398606659adee7bfc17 - https://huggingface.co/piddnad/DDColor-models (model card licence: apache-2.0); arch code piddnad/DDColor @ 2adb63f
 - `NAFNet-GoPro-width32.pth` 19394e6155d12ef6371d1d57496f87f0ec88f92bdffa27c0792690722d5d1a5c - official Google Drive id 1Fr2QadtDCEXg6iwWX8OzeZLbHOx2t5Bj (megvii-research/NAFNet README); byte-identical mirrors huggingface.co/nyanko7/nafnet-models and huggingface.co/mikestealth/nafnet-models (sha256 checked against the official file on 2026-11-25)
 
+## Fix log
+- 2026-11-25 (republished, run 45636782825): DDColorTiny came out grey in the iOS Simulator (CPU): its LayerNorms overflowed float16 (activations ~1800, (x-mu)^2 ~3e6 > 65504). The macOS CPU path used for verification hid it. All 55 LayerNorms now use an exact overflow-free formulation (`coreml/archs/ddcolor.py` safe_layer_norm; fp32 output identical to upstream, max diff 2e-4). ESRGANGeneral activations peak at 74, so it is not affected. New sha256 values are in the manifest. Verification now also runs on CPU_AND_GPU (same numbers on the CI VM). The Simulator/iPhone result is still to be confirmed by the APP agent's CI.
+
 ## Verification (GitHub Actions macos-26, Apple M1 (Virtual), coremltools 9.0, torch 2.7.1)
 
 Conversion correctness - Core ML (CPU) vs PyTorch fp32 on real-photo inputs at model size (`docs/quality/conversion.json`):
