@@ -173,6 +173,7 @@ def main():
                     "torch": torch.__version__, "coremltools": ct.__version__},
         "models": {},
     }
+    failures = []
     names = [n for n in VARIANTS if not args.only or n in args.only.split(",")]
     for name in names:
         print("=== converting", name, flush=True)
@@ -202,10 +203,15 @@ def main():
             }
             entry["variants"][v] = item
             print(json.dumps({name + ":" + v: item}, indent=1), flush=True)
+            worst = min(val for k, val in vs_torch.items() if k.startswith("psnr") and k.endswith("_min"))
+            if worst < 40.0:
+                failures.append(f"{name}:{v} worst-tile PSNR vs torch {worst:.1f} dB < 40 dB")
         report["models"][name] = entry
         del wrapper
     with open(os.path.join(rdir, "conversion.json"), "w") as f:
         json.dump(report, f, indent=2)
+    if failures:
+        raise SystemExit("CONVERSION CHECK FAILED: " + "; ".join(failures))
 
 
 if __name__ == "__main__":

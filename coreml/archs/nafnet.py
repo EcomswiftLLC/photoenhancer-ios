@@ -8,6 +8,20 @@ State-dict compatible with the official `NAFNet-GoPro-width32.pth` (key `params`
 """
 import torch
 from torch import nn
+from torch.nn import functional as F
+
+
+def spatial_mean(x):
+    """Global average pool, fp16-safe and exact: Core ML may accumulate reduce_mean in float16, and on
+    flat 256x256 tiles the plain spatial sum reaches ~78000 > 65504 (overflow -> broken tiles).
+    Mean of equal-block means == global mean; pre-scaling by 1/16 keeps every 4x4 partial sum below
+    max|x|, so nothing can overflow."""
+    y = x * (1.0 / 16.0)
+    while y.shape[-1] > 1 or y.shape[-2] > 1:
+        kh = 4 if y.shape[-2] % 4 == 0 else (2 if y.shape[-2] % 2 == 0 else y.shape[-2])
+        kw = 4 if y.shape[-1] % 4 == 0 else (2 if y.shape[-1] % 2 == 0 else y.shape[-1])
+        y = F.avg_pool2d(y, (kh, kw))
+    return y * 16.0
 
 
 class LayerNorm2d(nn.Module):
@@ -65,7 +79,7 @@ class NAFBlock(nn.Module):
         x = self.conv2(x)
         x = self.sg(x)
         # global average pool written as mean so it converts to a plain reduce op
-        x = x * self.sca[1](x.mean(dim=(2, 3), keepdim=True))
+        x = x * self.sca[1](spatial_mean(x))
         x = self.conv3(x)
         y = inp + x * self.beta
         x = self.conv4(self.norm2(y))
