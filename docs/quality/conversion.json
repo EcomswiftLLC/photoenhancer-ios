@@ -1,0 +1,210 @@
+{
+ "machine": {
+  "platform": "macOS-26.7.2-arm64-arm-64bit",
+  "processor": "arm",
+  "chip": "Apple M1 (Virtual)",
+  "torch": "2.7.1",
+  "coremltools": "9.0"
+ },
+ "models": {
+  "ESRGANGeneral": {
+   "variants": {
+    "fp16": {
+     "path": "build/mlpackages/ESRGANGeneral.mlpackage",
+     "size_bytes": 2496296,
+     "n_test_inputs": 8,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff": 9.0,
+      "mean_abs_diff": 0.1997138224542141,
+      "psnr_db_min": 53.98449256670834,
+      "psnr_db_mean": 54.86818632997547
+     },
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 127.1,
+       "median_ms": 137.9,
+       "min_ms": 124.5
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 125.3,
+       "median_ms": 162.3,
+       "min_ms": 123.9
+      },
+      "ALL": {
+       "load_ms": 173.1,
+       "median_ms": 129.5,
+       "min_ms": 108.1
+      }
+     }
+    }
+   }
+  },
+  "NAFNetDeblur": {
+   "variants": {
+    "fp16": {
+     "path": "build/mlpackages/NAFNetDeblur.mlpackage",
+     "size_bytes": 35089941,
+     "n_test_inputs": 12,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff": 3.0,
+      "mean_abs_diff": 0.0748371547088027,
+      "psnr_db_min": 56.629493048096755,
+      "psnr_db_mean": 59.850786633874975
+     },
+     "stats_max_rel_err_vs_torch": 0.029022747681481616,
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 1297.1,
+       "median_ms": 65.7,
+       "min_ms": 61.9
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 1170.9,
+       "median_ms": 65.0,
+       "min_ms": 62.3
+      },
+      "ALL": {
+       "load_ms": 1184.0,
+       "median_ms": 67.7,
+       "min_ms": 65.0
+      }
+     }
+    },
+    "int8": {
+     "path": "build/mlpackages/NAFNetDeblur-int8.mlpackage",
+     "size_bytes": 18341998,
+     "n_test_inputs": 12,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff": 6.0,
+      "mean_abs_diff": 0.19046486665805182,
+      "psnr_db_min": 51.888768074155045,
+      "psnr_db_mean": 55.92511920190387
+     },
+     "vs_fp16_coreml": {
+      "psnr_db_min": 51.7856233749455,
+      "psnr_db_mean": 56.461590229729865,
+      "max_abs_diff": 5.0
+     },
+     "stats_max_rel_err_vs_torch": 0.0749111192023231,
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 1823.1,
+       "median_ms": 116.9,
+       "min_ms": 91.6
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 2583.3,
+       "median_ms": 118.9,
+       "min_ms": 101.4
+      },
+      "ALL": {
+       "load_ms": 2560.6,
+       "median_ms": 89.9,
+       "min_ms": 76.5
+      }
+     }
+    },
+    "fp32": {
+     "path": "build/mlpackages/NAFNetDeblur-fp32.mlpackage",
+     "size_bytes": 69193808,
+     "n_test_inputs": 12,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff": 44.0,
+      "mean_abs_diff": 0.1511751807605227,
+      "psnr_db_min": 44.487446064189704,
+      "psnr_db_mean": 54.5347342281155
+     },
+     "vs_fp16_coreml": {
+      "psnr_db_min": 44.385855665901616,
+      "psnr_db_mean": 53.51174014804878,
+      "max_abs_diff": 44.0
+     },
+     "stats_max_rel_err_vs_torch": 0.07970444234823199,
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 1469.8,
+       "median_ms": 146.9,
+       "min_ms": 129.9
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 1650.7,
+       "median_ms": 159.9,
+       "min_ms": 145.4
+      },
+      "ALL": {
+       "load_ms": 1424.8,
+       "median_ms": 139.7,
+       "min_ms": 136.5
+      }
+     }
+    }
+   }
+  },
+  "DDColorTiny": {
+   "variants": {
+    "fp16": {
+     "path": "build/mlpackages/DDColorTiny.mlpackage",
+     "size_bytes": 121305353,
+     "n_test_inputs": 6,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff_ab": 11.81689453125,
+      "mean_abs_diff_ab": 0.18137549857298532,
+      "psnr_db_rgb_min": 50.37994864326692,
+      "psnr_db_rgb_mean": 53.51726853077361
+     },
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 1745.5,
+       "median_ms": 423.9,
+       "min_ms": 400.4
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 1145.9,
+       "median_ms": 446.5,
+       "min_ms": 327.3
+      },
+      "ALL": {
+       "load_ms": 1194.0,
+       "median_ms": 360.2,
+       "min_ms": 324.1
+      }
+     }
+    },
+    "int8": {
+     "path": "build/mlpackages/DDColorTiny-int8.mlpackage",
+     "size_bytes": 61283263,
+     "n_test_inputs": 6,
+     "vs_torch_fp32_cpu": {
+      "max_abs_diff_ab": 27.869972229003906,
+      "mean_abs_diff_ab": 0.31193023175001144,
+      "psnr_db_rgb_min": 43.87736240013158,
+      "psnr_db_rgb_mean": 50.96964356643477
+     },
+     "vs_fp16_coreml": {
+      "psnr_db_rgb_min": 44.996728423911875,
+      "psnr_db_rgb_mean": 51.49785361755386,
+      "max_abs_diff_ab": 29.09375
+     },
+     "latency_per_tile": {
+      "CPU_ONLY": {
+       "load_ms": 1539.9,
+       "median_ms": 468.8,
+       "min_ms": 390.6
+      },
+      "CPU_AND_GPU": {
+       "load_ms": 1368.4,
+       "median_ms": 337.8,
+       "min_ms": 292.7
+      },
+      "ALL": {
+       "load_ms": 858.4,
+       "median_ms": 349.7,
+       "min_ms": 311.7
+      }
+     }
+    }
+   }
+  }
+ },
+ "gate_failures": []
+}

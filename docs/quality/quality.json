@@ -1,0 +1,418 @@
+{
+  "tiling_identity_test": {
+    "identity_exact": true,
+    "nearest_x4_exact": true,
+    "small_image_padded_exact": true
+  },
+  "super_resolution": [
+    {
+      "image": "cat03",
+      "lr_size": [
+        399,
+        400
+      ],
+      "out_size": [
+        1596,
+        1600
+      ],
+      "seconds_tiled_coreml": 0.65,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 32.42257687156709,
+      "psnr_esrgan_vs_gt": 32.402786315235986,
+      "ssim_bicubic_vs_gt": 0.8734142039833844,
+      "ssim_esrgan_vs_gt": 0.8806241807800906,
+      "psnr_tiled_coreml_vs_whole_image_torch": 55.182725721833094
+    },
+    {
+      "image": "felis_catus_cat_on_snow",
+      "lr_size": [
+        320,
+        480
+      ],
+      "out_size": [
+        1280,
+        1920
+      ],
+      "seconds_tiled_coreml": 0.56,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 25.866599777427822,
+      "psnr_esrgan_vs_gt": 25.249356131679335,
+      "ssim_bicubic_vs_gt": 0.7433736819312967,
+      "ssim_esrgan_vs_gt": 0.736723653440038,
+      "psnr_tiled_coreml_vs_whole_image_torch": 54.62989941890977
+    },
+    {
+      "image": "neil_armstrong_pose",
+      "lr_size": [
+        600,
+        480
+      ],
+      "out_size": [
+        2400,
+        1920
+      ],
+      "seconds_tiled_coreml": 0.75,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 26.793579773639085,
+      "psnr_esrgan_vs_gt": 26.46727403553921,
+      "ssim_bicubic_vs_gt": 0.6768572076342995,
+      "ssim_esrgan_vs_gt": 0.7083332808770542,
+      "psnr_tiled_coreml_vs_whole_image_torch": 54.285618205820526
+    },
+    {
+      "image": "official_portrait_of_barack_obama",
+      "lr_size": [
+        652,
+        479
+      ],
+      "out_size": [
+        2608,
+        1916
+      ],
+      "seconds_tiled_coreml": 1.12,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 32.58700579800231,
+      "psnr_esrgan_vs_gt": 29.44582617957542,
+      "ssim_bicubic_vs_gt": 0.8949124340861664,
+      "ssim_esrgan_vs_gt": 0.8878822765682551,
+      "psnr_tiled_coreml_vs_whole_image_torch": 54.39079640203666
+    },
+    {
+      "image": "president_barack_obama",
+      "lr_size": [
+        599,
+        480
+      ],
+      "out_size": [
+        2396,
+        1920
+      ],
+      "seconds_tiled_coreml": 1.68,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 29.048042015235506,
+      "psnr_esrgan_vs_gt": 27.67757889828848,
+      "ssim_bicubic_vs_gt": 0.8026485903844048,
+      "ssim_esrgan_vs_gt": 0.7980996883296344,
+      "psnr_tiled_coreml_vs_whole_image_torch": 53.734183461219345
+    },
+    {
+      "image": "tunnel_view_yosemite_valley_yosemite_np_",
+      "lr_size": [
+        313,
+        480
+      ],
+      "out_size": [
+        1252,
+        1920
+      ],
+      "seconds_tiled_coreml": 1.18,
+      "compute_units": "ALL",
+      "psnr_bicubic_vs_gt": 19.899855152409998,
+      "psnr_esrgan_vs_gt": 19.504375089285475,
+      "ssim_bicubic_vs_gt": 0.40358318538140076,
+      "ssim_esrgan_vs_gt": 0.3985293168401895,
+      "psnr_tiled_coreml_vs_whole_image_torch": 52.09195257981243
+    }
+  ],
+  "deblur": [
+    {
+      "image": "cat03",
+      "size": [
+        1278,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 32.59811842501324,
+      "ssim_blurred_vs_sharp": 0.8639179350786962,
+      "seconds_tiled_fp16": 4.18,
+      "psnr_fp16_vs_sharp": 31.9978511234898,
+      "ssim_fp16_vs_sharp": 0.8535664538944485,
+      "max_block_change_fp16": 6.008392333984375,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 29.707489709522036,
+      "seconds_tiled_int8": 3.98,
+      "psnr_int8_vs_sharp": 32.00919444654225,
+      "ssim_int8_vs_sharp": 0.8538912191489807,
+      "max_block_change_int8": 5.9436798095703125,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 56.59345988504319,
+      "ssim_int8_vs_fp16": 0.998890380235446,
+      "psnr_torch_whole_image_vs_sharp": 29.76147934402849,
+      "psnr_tiled_fp16_vs_whole_image_torch": 31.805755579543288
+    },
+    {
+      "image": "felis_catus_cat_on_snow",
+      "size": [
+        853,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 26.866097868700223,
+      "ssim_blurred_vs_sharp": 0.7577727375131195,
+      "seconds_tiled_fp16": 2.1,
+      "psnr_fp16_vs_sharp": 25.28757497444408,
+      "ssim_fp16_vs_sharp": 0.7350496509985049,
+      "max_block_change_fp16": 13.93317985534668,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 27.460545234347098,
+      "seconds_tiled_int8": 2.04,
+      "psnr_int8_vs_sharp": 25.300654383233656,
+      "ssim_int8_vs_sharp": 0.734863879324685,
+      "max_block_change_int8": 13.972564697265625,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 50.29357854226767,
+      "ssim_int8_vs_fp16": 0.9981311968857334,
+      "psnr_torch_whole_image_vs_sharp": 28.65665004147063,
+      "psnr_tiled_fp16_vs_whole_image_torch": 28.09775487018017
+    },
+    {
+      "image": "neil_armstrong_pose",
+      "size": [
+        1600,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 24.843111877942686,
+      "ssim_blurred_vs_sharp": 0.7281457611771613,
+      "seconds_tiled_fp16": 5.57,
+      "psnr_fp16_vs_sharp": 25.772236648120746,
+      "ssim_fp16_vs_sharp": 0.7375380423683069,
+      "max_block_change_fp16": 6.62701416015625,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 27.66435604973627,
+      "seconds_tiled_int8": 4.21,
+      "psnr_int8_vs_sharp": 25.77995538224332,
+      "ssim_int8_vs_sharp": 0.7384807918510877,
+      "max_block_change_int8": 6.591283321380615,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 54.21165090252479,
+      "ssim_int8_vs_fp16": 0.9983872739414709,
+      "psnr_torch_whole_image_vs_sharp": 27.42335979340512,
+      "psnr_tiled_fp16_vs_whole_image_torch": 30.59900362720225
+    },
+    {
+      "image": "official_portrait_of_barack_obama",
+      "size": [
+        1742,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 31.261199468597766,
+      "ssim_blurred_vs_sharp": 0.8872034916936972,
+      "seconds_tiled_fp16": 3.88,
+      "psnr_fp16_vs_sharp": 31.1513174954958,
+      "ssim_fp16_vs_sharp": 0.86861067033397,
+      "max_block_change_fp16": 8.94001293182373,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 17.39599671664802,
+      "seconds_tiled_int8": 3.77,
+      "psnr_int8_vs_sharp": 31.188749980976013,
+      "ssim_int8_vs_sharp": 0.8691090556315161,
+      "max_block_change_int8": 8.878392219543457,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 53.36585857885618,
+      "ssim_int8_vs_fp16": 0.9979318743307971,
+      "psnr_torch_whole_image_vs_sharp": 35.121277322276775,
+      "psnr_tiled_fp16_vs_whole_image_torch": 33.339351294176026
+    },
+    {
+      "image": "president_barack_obama",
+      "size": [
+        1598,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 26.614125436734376,
+      "ssim_blurred_vs_sharp": 0.7994821172468162,
+      "seconds_tiled_fp16": 3.86,
+      "psnr_fp16_vs_sharp": 28.173390361980463,
+      "ssim_fp16_vs_sharp": 0.815342083967398,
+      "max_block_change_fp16": 7.891754150390625,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 28.787757892141702,
+      "seconds_tiled_int8": 3.7,
+      "psnr_int8_vs_sharp": 28.156536241102796,
+      "ssim_int8_vs_sharp": 0.815171926738207,
+      "max_block_change_int8": 7.918792724609375,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 56.77522586706348,
+      "ssim_int8_vs_fp16": 0.9993181467751643,
+      "psnr_torch_whole_image_vs_sharp": 31.856642122812346,
+      "psnr_tiled_fp16_vs_whole_image_torch": 30.931970642757868
+    },
+    {
+      "image": "tunnel_view_yosemite_valley_yosemite_np_",
+      "size": [
+        835,
+        1280
+      ],
+      "psnr_blurred_vs_sharp": 21.705286254676665,
+      "ssim_blurred_vs_sharp": 0.4541631490842719,
+      "seconds_tiled_fp16": 2.63,
+      "psnr_fp16_vs_sharp": 21.94344767703111,
+      "ssim_fp16_vs_sharp": 0.48210376646553926,
+      "max_block_change_fp16": 7.16880464553833,
+      "broken_blocks_fp16": 0,
+      "psnr_fp16_no_context_vs_sharp": 23.160121411581017,
+      "seconds_tiled_int8": 2.4,
+      "psnr_int8_vs_sharp": 21.930855751490665,
+      "ssim_int8_vs_sharp": 0.4814094031166447,
+      "max_block_change_int8": 7.093011379241943,
+      "broken_blocks_int8": 0,
+      "psnr_int8_vs_fp16": 55.16126725107785,
+      "ssim_int8_vs_fp16": 0.9990889174102572,
+      "psnr_torch_whole_image_vs_sharp": 23.249560709684438,
+      "psnr_tiled_fp16_vs_whole_image_torch": 28.426788397664954
+    }
+  ],
+  "colorize": [
+    {
+      "image": "cat03",
+      "group": "color",
+      "size": [
+        1598,
+        1600
+      ],
+      "seconds_fp16": 0.53,
+      "colorfulness_fp16": 33.13692821693463,
+      "psnr_fp16_vs_original_colour": 25.852432876201973,
+      "seconds_int8": 0.47,
+      "colorfulness_int8": 32.92919533704045,
+      "psnr_int8_vs_original_colour": 25.61816860716039,
+      "psnr_int8_vs_fp16": 47.77596824411327,
+      "ssim_int8_vs_fp16": 0.9983285087955855,
+      "psnr_fp16_vs_upstream_torch_pipeline": 53.65669435177288,
+      "colorfulness_original": 42.423681679295285
+    },
+    {
+      "image": "felis_catus_cat_on_snow",
+      "group": "color",
+      "size": [
+        1066,
+        1600
+      ],
+      "seconds_fp16": 0.56,
+      "colorfulness_fp16": 24.39174471796953,
+      "psnr_fp16_vs_original_colour": 29.126188281221648,
+      "seconds_int8": 0.38,
+      "colorfulness_int8": 24.40802045484023,
+      "psnr_int8_vs_original_colour": 29.121014348414164,
+      "psnr_int8_vs_fp16": 55.56229671944105,
+      "ssim_int8_vs_fp16": 0.9989528201365778,
+      "psnr_fp16_vs_upstream_torch_pipeline": 58.061965775326286,
+      "colorfulness_original": 21.508879912397095
+    },
+    {
+      "image": "neil_armstrong_pose",
+      "group": "color",
+      "size": [
+        2000,
+        1600
+      ],
+      "seconds_fp16": 0.51,
+      "colorfulness_fp16": 55.988358461049174,
+      "psnr_fp16_vs_original_colour": 19.595046744326257,
+      "seconds_int8": 0.43,
+      "colorfulness_int8": 56.06907857342893,
+      "psnr_int8_vs_original_colour": 19.582396443491465,
+      "psnr_int8_vs_fp16": 45.19364579082195,
+      "ssim_int8_vs_fp16": 0.9910027821918551,
+      "psnr_fp16_vs_upstream_torch_pipeline": 50.74800609472245,
+      "colorfulness_original": 29.155743169705353
+    },
+    {
+      "image": "official_portrait_of_barack_obama",
+      "group": "color",
+      "size": [
+        2177,
+        1600
+      ],
+      "seconds_fp16": 0.34,
+      "colorfulness_fp16": 48.69171463778925,
+      "psnr_fp16_vs_original_colour": 27.03071479861892,
+      "seconds_int8": 0.27,
+      "colorfulness_int8": 48.88414744448272,
+      "psnr_int8_vs_original_colour": 26.99707812542091,
+      "psnr_int8_vs_fp16": 52.62942982966396,
+      "ssim_int8_vs_fp16": 0.9980358495095522,
+      "psnr_fp16_vs_upstream_torch_pipeline": 52.88024884604087,
+      "colorfulness_original": 38.92047530017032
+    },
+    {
+      "image": "president_barack_obama",
+      "group": "color",
+      "size": [
+        1998,
+        1600
+      ],
+      "seconds_fp16": 0.44,
+      "colorfulness_fp16": 57.49001881242404,
+      "psnr_fp16_vs_original_colour": 20.655493256795904,
+      "seconds_int8": 0.43,
+      "colorfulness_int8": 56.45673549697685,
+      "psnr_int8_vs_original_colour": 20.74978082201669,
+      "psnr_int8_vs_fp16": 46.885910202702135,
+      "ssim_int8_vs_fp16": 0.9976214837821732,
+      "psnr_fp16_vs_upstream_torch_pipeline": 53.75088337937284,
+      "colorfulness_original": 63.35465894110385
+    },
+    {
+      "image": "tunnel_view_yosemite_valley_yosemite_np_",
+      "group": "color",
+      "size": [
+        1044,
+        1600
+      ],
+      "seconds_fp16": 0.32,
+      "colorfulness_fp16": 39.00144280421636,
+      "psnr_fp16_vs_original_colour": 28.311850291708176,
+      "seconds_int8": 0.28,
+      "colorfulness_int8": 39.3181510521837,
+      "psnr_int8_vs_original_colour": 28.247490681088113,
+      "psnr_int8_vs_fp16": 53.79200350578237,
+      "ssim_int8_vs_fp16": 0.9992983534950568,
+      "psnr_fp16_vs_upstream_torch_pipeline": 55.60473256313966,
+      "colorfulness_original": 33.50030319493088
+    },
+    {
+      "image": "abraham_lincoln_o_77_matte_collodion_pri",
+      "group": "bw",
+      "size": [
+        2061,
+        1600
+      ],
+      "seconds_fp16": 0.31,
+      "colorfulness_fp16": 4.4352826964992795,
+      "seconds_int8": 0.27,
+      "colorfulness_int8": 5.183784239901119,
+      "psnr_int8_vs_fp16": 55.088277947736074,
+      "ssim_int8_vs_fp16": 0.9995123946131614,
+      "psnr_fp16_vs_upstream_torch_pipeline": 53.7209872252365
+    },
+    {
+      "image": "first_flight2",
+      "group": "bw",
+      "size": [
+        1037,
+        1600
+      ],
+      "seconds_fp16": 0.31,
+      "colorfulness_fp16": 11.407668249848843,
+      "seconds_int8": 0.35,
+      "colorfulness_int8": 11.465976911666539,
+      "psnr_int8_vs_fp16": 55.29678806511605,
+      "ssim_int8_vs_fp16": 0.9988861862532353,
+      "psnr_fp16_vs_upstream_torch_pipeline": 52.17792880032622
+    },
+    {
+      "image": "lange_migrantmother02",
+      "group": "bw",
+      "size": [
+        2080,
+        1600
+      ],
+      "seconds_fp16": 0.38,
+      "colorfulness_fp16": 41.91956129825863,
+      "seconds_int8": 0.4,
+      "colorfulness_int8": 41.88169120716833,
+      "psnr_int8_vs_fp16": 52.986599314190485,
+      "ssim_int8_vs_fp16": 0.9990412264626783,
+      "psnr_fp16_vs_upstream_torch_pipeline": 52.00543457961443
+    }
+  ]
+}

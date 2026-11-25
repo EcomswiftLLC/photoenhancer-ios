@@ -96,6 +96,8 @@ def main():
     ap.add_argument("--out", default="build")
     ap.add_argument("--nafnet", default="fp16")
     ap.add_argument("--ddcolor", default="int8")
+    ap.add_argument("--ship-nafnet", action="store_true",
+                    help="NAFNetDeblur is deferred in models-v1 (visual check failed: tile texture on skin, fur streaks); pass to include it")
     args = ap.parse_args()
     choice = {"ESRGANGeneral": "fp16", "NAFNetDeblur": args.nafnet, "DDColorTiny": args.ddcolor}
     rel = os.path.join(args.out, "release")
@@ -113,8 +115,9 @@ def main():
     naf_fail = [g for g in conv.get("gate_failures", []) if g.startswith("NAFNetDeblur")]
     v = args.nafnet
     broken = sum(r.get(f"broken_blocks_{v}", 1) for r in deb) if deb else None
-    if naf_fail or not deb or broken:
-        reason = "; ".join(naf_fail) or ("no deblur quality run" if not deb else f"{broken} broken 256px blocks in the real-photo quality run")
+    if not args.ship_nafnet or naf_fail or not deb or broken:
+        reason = "; ".join(naf_fail) or ("no deblur quality run" if not deb else (f"{broken} broken 256px blocks in the real-photo quality run" if broken else
+                 "visual check failed on real photos: checkerboard texture / faint tile structure on smooth skin, streaking on fur, PSNR gain over the blurred input small or negative (see docs/MODELS.md)"))
         deferred.append({"name": "NAFNetDeblur", "status": "deferred", "reason": reason,
                          "app_fallback": "Unblur ships as Real-ESRGAN pass (4x then downscale) + classical Core Image sharpen/denoise"})
         choice.pop("NAFNetDeblur")

@@ -17,6 +17,10 @@ on:
         type: choice
         options: [int8, fp16]
         default: int8
+      ship_nafnet:
+        description: "Include NAFNetDeblur (deferred in v1)"
+        type: boolean
+        default: false
       only:
         description: "Debug: convert only these models (comma list), skip quality/publish when set"
         type: string
@@ -97,7 +101,7 @@ jobs:
         if: ${{ inputs.only == '' }}
         run: |
           source .venv/bin/activate
-          python coreml/publish.py --out build --nafnet "${{ inputs.nafnet_variant }}" --ddcolor "${{ inputs.ddcolor_variant }}"
+          python coreml/publish.py --out build --nafnet "${{ inputs.nafnet_variant }}" --ddcolor "${{ inputs.ddcolor_variant }}" ${{ inputs.ship_nafnet && '--ship-nafnet' || '' }}
           ls -la build/release
           cp build/samples/sources.json build/report/sample-sources.json
 
