@@ -52,7 +52,8 @@ struct CompareView: View {
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: after)
 
                 if after != nil && !holding {
-                    dividerHandle(bounds: bounds)
+                    // The divider spans the visible photo only, not the empty margin above and below a wide photo.
+                    dividerHandle(bounds: bounds, height: min(bounds.height, fit.height * zoom))
                         .position(x: CGFloat(divider) * bounds.width, y: bounds.height / 2)
                 }
                 if showsLabels && after != nil {
@@ -117,9 +118,8 @@ struct CompareView: View {
             .offset(x: clamped)
     }
 
-    private func dividerHandle(bounds: CGSize) -> some View {
-        let height = bounds.height
-        return ZStack {
+    private func dividerHandle(bounds: CGSize, height: CGFloat) -> some View {
+        ZStack {
             Rectangle()
                 .fill(CV.Palette.pearl)
                 .frame(width: 2, height: height)

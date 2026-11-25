@@ -31,7 +31,7 @@ enum StoreScreens {
         case "restore":
             return Scene(sample: "old-portrait-1859", tools: [.restore], fallback: [.restore], selected: .restore)
         case "portrait":
-            return Scene(sample: "portrait-woman-lowres", tools: [.portrait, .autoFix], fallback: [.portrait], selected: .portrait)
+            return Scene(sample: "portrait-woman-lowres", tools: [.portrait], fallback: [.portrait], selected: .portrait)
         default:
             return nil
         }
