@@ -117,8 +117,8 @@ struct HomeView: View {
                             }
                             .frame(width: CV.Layout.homeRail)
                             VStack(alignment: .leading, spacing: CV.Space.l) {
-                                samplesSection(columns: 3)
-                                recentSection(columns: 4)
+                                samplesSection(columns: max(3, Int((geo.size.width - CV.Layout.homeRail - 96) / 230)))
+                                recentSection(columns: max(4, Int((geo.size.width - CV.Layout.homeRail - 96) / 170)))
                                 CVInlineBanner(slot: bannerSlot)
                             }
                             .frame(maxWidth: .infinity)

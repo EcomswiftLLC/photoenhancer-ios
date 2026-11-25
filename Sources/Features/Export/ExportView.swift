@@ -157,7 +157,7 @@ struct ExportView: View {
 
             if model.options.format.isLossy {
                 group("Quality") {
-                    StrengthSlider(title: "Quality", value: $model.options.quality, range: 0.5...1)
+                    StrengthSlider(title: "Higher keeps more detail, lower makes smaller files", value: $model.options.quality, range: 0.5...1)
                 }
             }
 
@@ -211,11 +211,10 @@ struct ExportView: View {
             .buttonStyle(.cvPrimaryWide)
             .disabled(model.isBusy || model.blockedReason != nil)
 
-            HStack(spacing: CV.Space.s) {
-                Button { model.perform(.share) } label: { Label("Share", systemImage: "square.and.arrow.up") }
-                    .buttonStyle(.cvSecondaryWide)
-                Button { model.perform(.files) } label: { Label("Save to Files", systemImage: "folder") }
-                    .buttonStyle(.cvSecondaryWide)
+            // Side by side when both labels fit on one line, otherwise stacked (narrow panels, large text).
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CV.Space.s) { secondaryActions }
+                VStack(spacing: CV.Space.s) { secondaryActions }
             }
             .disabled(model.isBusy || model.blockedReason != nil)
 
@@ -228,6 +227,14 @@ struct ExportView: View {
                 .font(CV.Font.caption).foregroundStyle(CV.Palette.mist)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    @ViewBuilder
+    private var secondaryActions: some View {
+        Button { model.perform(.share) } label: { Label("Share", systemImage: "square.and.arrow.up").lineLimit(1).fixedSize() }
+            .buttonStyle(.cvSecondaryWide)
+        Button { model.perform(.files) } label: { Label("Save to Files", systemImage: "folder").lineLimit(1).fixedSize() }
+            .buttonStyle(.cvSecondaryWide)
     }
 
     @ViewBuilder

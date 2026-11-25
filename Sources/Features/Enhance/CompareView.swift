@@ -53,7 +53,9 @@ struct CompareView: View {
                         .position(x: CGFloat(divider) * bounds.width, y: bounds.height / 2)
                 }
                 if showsLabels && after != nil {
+                    // Inside the visible photo, never floating on the empty margin beside it.
                     labels
+                        .frame(width: min(bounds.width, fit.width * zoom), height: min(bounds.height, fit.height * zoom))
                 }
             }
             .frame(width: bounds.width, height: bounds.height)

@@ -59,15 +59,18 @@ struct OnboardingView: View {
     }
 
     private var hero: some View {
-        ZStack {
-            CV.Palette.deep
-            if let heroImage {
-                Image(uiImage: heroImage).resizable().scaledToFill()
-                    .accessibilityHidden(true)
-            } else {
-                ClarivoMark(lineWidth: 3).frame(width: 96, height: 96)
+        // The photo fills the frame it is given and never widens the layout.
+        CV.Palette.deep
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay {
+                if let heroImage {
+                    Image(uiImage: heroImage).resizable().scaledToFill()
+                        .accessibilityHidden(true)
+                } else {
+                    ClarivoMark(lineWidth: 3).frame(width: 96, height: 96)
+                }
             }
-        }
+            .clipped()
         .clipShape(RoundedRectangle(cornerRadius: CV.Radius.panel, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CV.Radius.panel, style: .continuous).strokeBorder(CV.Palette.line, lineWidth: 1))
     }

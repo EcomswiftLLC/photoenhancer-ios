@@ -247,7 +247,7 @@ struct BatchView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!available)
-                .opacity(available ? 1 : 0.45)
+                .opacity(available ? 1 : 0.6)
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
             Button {

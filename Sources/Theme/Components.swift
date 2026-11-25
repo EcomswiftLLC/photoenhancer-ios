@@ -117,39 +117,50 @@ struct CVChipFlow<Content: View>: View {
     }
 }
 
-/// Lays children out left to right, wrapping to a new line when the row is full.
+/// Lays children out left to right, wrapping to a new line when the row is full. Sizing and placement share one
+/// algorithm (`rows`), so the height it asks for always matches where it puts things.
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
+    private func rows(maxWidth: CGFloat, subviews: Subviews) -> [[(index: Int, size: CGSize)]] {
+        var rows: [[(index: Int, size: CGSize)]] = [[]]
+        var x: CGFloat = 0
+        for (index, view) in subviews.enumerated() {
+            let size = view.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > maxWidth + 0.5 {
+                rows.append([])
+                x = 0
+            }
+            rows[rows.count - 1].append((index, size))
+            x += size.width + spacing
+        }
+        return rows
+    }
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxWidth = proposal.width ?? .infinity
-        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, widest: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
-            if x > 0 && x + size.width > maxWidth {
-                y += rowHeight + spacing
-                x = 0
-                rowHeight = 0
-            }
-            x += size.width + spacing
-            widest = max(widest, x - spacing)
-            rowHeight = max(rowHeight, size.height)
+        let lines = rows(maxWidth: maxWidth, subviews: subviews)
+        var height: CGFloat = 0
+        var widest: CGFloat = 0
+        for (i, line) in lines.enumerated() {
+            let lineWidth = line.reduce(0) { $0 + $1.size.width } + spacing * CGFloat(max(0, line.count - 1))
+            widest = max(widest, lineWidth)
+            height += (line.map { $0.size.height }.max() ?? 0) + (i > 0 ? spacing : 0)
         }
-        return CGSize(width: min(widest, maxWidth), height: y + rowHeight)
+        return CGSize(width: proposal.width ?? widest, height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
-            if x > bounds.minX && x + size.width > bounds.maxX {
-                y += rowHeight + spacing
-                x = bounds.minX
-                rowHeight = 0
+        let lines = rows(maxWidth: proposal.width ?? bounds.width, subviews: subviews)
+        var y = bounds.minY
+        for line in lines {
+            var x = bounds.minX
+            let lineHeight = line.map { $0.size.height }.max() ?? 0
+            for item in line {
+                subviews[item.index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(item.size))
+                x += item.size.width + spacing
             }
-            view.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
+            y += lineHeight + spacing
         }
     }
 }

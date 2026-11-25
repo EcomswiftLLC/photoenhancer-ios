@@ -156,13 +156,19 @@ struct EnhanceView: View {
     // MARK: Tools
 
     private var toolStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: CV.Space.s) {
-                ForEach(ToolKind.allCases) { tool in
-                    toolButton(tool, compact: true)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CV.Space.s) {
+                    ForEach(ToolKind.allCases) { tool in
+                        toolButton(tool, compact: true).id(tool)
+                    }
                 }
+                .padding(.horizontal, CV.Space.m)
             }
-            .padding(.horizontal, CV.Space.m)
+            .onAppear { proxy.scrollTo(model.selectedTool, anchor: .center) }
+            .onChange(of: model.selectedTool) { _, tool in
+                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(tool, anchor: .center) }
+            }
         }
     }
 
