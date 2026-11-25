@@ -24,6 +24,15 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Fetch Core ML models (models-v1 release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash .github/scripts/fetch-models.sh
+          # Release must not ship without the models the listing promises.
+          test -d Models/ESRGANGeneral.mlmodelc || { echo "ESRGANGeneral model missing"; exit 1; }
+          test -d Models/DDColorTiny.mlmodelc || { echo "DDColorTiny model missing"; exit 1; }
+
       - name: Generate project
         run: xcodegen generate
 
