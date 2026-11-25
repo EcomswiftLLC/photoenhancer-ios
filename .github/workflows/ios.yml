@@ -3,6 +3,15 @@ name: iOS build, test and screenshots
 on:
   push:
     branches: [main]
+    # Pushes that cannot change the app (docs, website, model conversion, design, tools) neither start nor supersede an iOS run.
+    paths-ignore:
+      - "docs/**"
+      - "website/**"
+      - "coreml/**"
+      - "design/**"
+      - "tools/**"
+      - "**/*.md"
+      - ".github/workflows/models.yml"
   workflow_dispatch:
 
 env:
