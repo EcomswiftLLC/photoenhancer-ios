@@ -90,7 +90,7 @@ final class RecipeTests: XCTestCase {
         XCTAssertEqual(EnhanceOperation.upscale(factor: 2).requiredModel, .superResolution)
         XCTAssertEqual(EnhanceOperation.denoise(strength: 1).requiredModel, .superResolution)
         XCTAssertNil(EnhanceOperation.denoiseLight(strength: 1).requiredModel)
-        XCTAssertEqual(EnhanceOperation.unblur.requiredModel, .deblur)
+        XCTAssertNil(EnhanceOperation.unblur.requiredModel, "Unblur works without the deblur model")
         XCTAssertEqual(EnhanceOperation.colorize.requiredModel, .colorize)
         XCTAssertNil(EnhanceOperation.portrait.requiredModel, "Portrait falls back to classical enhancement")
         for tool in ToolKind.allCases {
@@ -123,7 +123,7 @@ final class EngineTests: XCTestCase {
 
     func testModelStepsFailGracefullyWithoutModels() async {
         let image = TestImages.cgPattern(width: 64, height: 64)
-        for op in [EnhanceOperation.upscale(factor: 2), .unblur, .colorize, .denoise(strength: 0.5)] {
+        for op in [EnhanceOperation.upscale(factor: 2), .colorize, .denoise(strength: 0.5)] {
             do {
                 _ = try await noModels.run([op], on: image)
                 XCTFail("\(op) should need a model")
@@ -142,7 +142,7 @@ final class EngineTests: XCTestCase {
     func testClassicalStepsKeepSizeAndChangePixels() async throws {
         let image = TestImages.cgPattern(width: 320, height: 240)
         let original = try XCTUnwrap(RGBAImage(cgImage: image))
-        let ops: [EnhanceOperation] = [.autoFix(strength: 1), .sharpen(strength: 1), .denoiseLight(strength: 1), .restoreOld(strength: 1), .portrait]
+        let ops: [EnhanceOperation] = [.autoFix(strength: 1), .sharpen(strength: 1), .denoiseLight(strength: 1), .restoreOld(strength: 1), .unblur, .portrait]
         for op in ops {
             let output = try await noModels.run([op], on: image)
             XCTAssertEqual(output.image.width, 320, "\(op)")

@@ -48,9 +48,10 @@ enum EnhanceOperation: Equatable, Hashable, Codable {
     var requiredModel: ModelKind? {
         switch self {
         case .upscale, .denoise: return .superResolution
-        case .unblur: return .deblur
         case .colorize: return .colorize
-        case .portrait, .denoiseLight, .restoreOld, .autoFix, .sharpen: return nil
+        // Unblur uses the deblur model when it is bundled, otherwise the super-resolution pass and classical
+        // sharpening, so it always works.
+        case .unblur, .portrait, .denoiseLight, .restoreOld, .autoFix, .sharpen: return nil
         }
     }
 
@@ -117,7 +118,6 @@ enum ToolKind: String, CaseIterable, Identifiable, Codable {
     var requiredModel: ModelKind? {
         switch self {
         case .upscale: return .superResolution
-        case .unblur: return .deblur
         case .colorize: return .colorize
         default: return nil
         }

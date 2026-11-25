@@ -103,9 +103,12 @@ final class Enhancer: @unchecked Sendable {
             let cleaned = try await superResolve(rgba, factor: 1, cancel: cancel, progress: progress)
             return try unwrap(rgba.blended(with: cleaned, amount: strength).makeCGImage())
         case .unblur:
-            let rgba = try pixels(image)
-            let out = try await deblur(rgba, cancel: cancel, progress: progress)
-            return try unwrap(out.makeCGImage())
+            if models.isAvailable(.deblur) {
+                let rgba = try pixels(image)
+                let out = try await deblur(rgba, cancel: cancel, progress: progress)
+                return try unwrap(out.makeCGImage())
+            }
+            return try await unblurWithoutDeblurModel(image, cancel: cancel, progress: progress)
         case .colorize:
             let rgba = try pixels(image)
             if LabColor.isAlreadyColour(rgba.resized(width: min(rgba.width, 256), height: max(1, rgba.height * min(rgba.width, 256) / rgba.width))) {
@@ -178,6 +181,21 @@ final class Enhancer: @unchecked Sendable {
         let reduced = input.resized(width: small.width, height: small.height)
         let corrected = try run(reduced)
         return Self.transferCorrection(from: reduced, to: corrected, onto: input)
+    }
+
+    /// Unblur when the deblur model is not bundled: a little noise reduction (so sharpening does not lift grain), the
+    /// super-resolution model at 1x when it is bundled (cleaner, crisper edges), then luminance sharpening.
+    func unblurWithoutDeblurModel(_ image: CGImage, cancel: CancelToken, progress: @escaping (Double) -> Void) async throws -> CGImage {
+        var current = try unwrap(ClassicalOps.denoiseLight(image, strength: 0.2))
+        progress(0.1)
+        try cancel.check()
+        if models.isAvailable(.superResolution) {
+            let rgba = try pixels(current)
+            let cleaned = try await superResolve(rgba, factor: 1, cancel: cancel, progress: { progress(0.1 + $0 * 0.8) })
+            current = try unwrap(cleaned.makeCGImage())
+        }
+        try cancel.check()
+        return try unwrap(ClassicalOps.sharpen(current, strength: 0.75))
     }
 
     /// Longest side unblur works at; larger photos get the correction of a reduced copy.
