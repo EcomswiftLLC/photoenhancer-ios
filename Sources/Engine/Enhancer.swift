@@ -210,7 +210,8 @@ final class Enhancer: @unchecked Sendable {
         // The whole photo stretched to the model's input size; the model converts it to grey (L*) itself.
         let small = image.resized(width: spec.inputWidth, height: spec.inputHeight)
         let input = try ModelRunner.inputValue(for: model, spec: spec, tile: small)
-        let result = try model.prediction(from: MLDictionaryFeatureProvider(dictionary: [spec.inputName: input]))
+        let provider = try MLDictionaryFeatureProvider(dictionary: [spec.inputName: input])
+        let result = try await model.prediction(from: provider)
         guard let value = result.featureValue(for: spec.outputName) else { throw EnhanceError.modelFailed("No colorize output") }
         try cancel.check()
         if let array = value.multiArrayValue {

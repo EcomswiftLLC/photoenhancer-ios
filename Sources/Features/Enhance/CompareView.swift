@@ -45,6 +45,8 @@ struct CompareView: View {
                 .scaleEffect(zoom)
                 .offset(offset)
                 .clipShape(Rectangle())
+                // The focus snap: a new result crossfades in.
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: after)
 
                 if after != nil && !holding {
                     dividerHandle(bounds: bounds)
