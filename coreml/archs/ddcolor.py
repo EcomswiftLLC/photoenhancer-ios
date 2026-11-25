@@ -91,7 +91,7 @@ def safe_layer_norm(x, dim, weight, bias, eps):
     iOS Simulator). Normalising by the per-position max |x - mu| first is mathematically identical:
       d / sqrt(mean(d^2) + eps) == d' / sqrt(mean(d'^2) + (sqrt(eps)/m)^2),  d' = d / m
     Means are taken as sums of pre-scaled terms so no partial sum can overflow either."""
-    c = x.shape[dim]
+    c = int(x.shape[dim])  # python constant (fixed shapes), keeps 1/c a float literal in the trace
     mu = (x * (1.0 / c)).sum(dim, keepdim=True)
     d = x - mu
     r = eps ** 0.5
