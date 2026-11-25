@@ -1,9 +1,10 @@
-"""Builds the App Store screenshots for the iPhone 6.9 inch display (1320 x 2868) from the CI screenshots.
+"""Builds the Clarivo App Store screenshots for the iPhone 6.9 inch display (1320 x 2868) from real CI captures.
 
 Usage: python tools/make_store_shots.py <folder-with-CI-pngs> <output-folder>
-  e.g. python tools/make_store_shots.py ci/screenshots design/store/6.9
+  e.g. gh run download <run-id> --repo EcomswiftLLC/photoenhancer-ios -n store-iphone -D ci/store-iphone
+       python tools/make_store_shots.py ci/store-iphone design/store/iphone69
 
-Inputs are the PNGs of the `screenshots` artifact of the lumotion-ios workflow (home-filled.png, editor-flow.png, ...).
+Inputs: the PNGs of the `store-iphone` artifact (home.png, enhance-result.png, compare.png, ...).
 Layout and copy live in tools/store_shots_common.py. Missing captures are skipped and listed, never invented.
 Needs Pillow and numpy.
 """
@@ -14,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import store_shots_common as common  # noqa: E402
 
 W, H = 1320, 2868
-OPTS = dict(head=128, sub=58, top=170, icon=150, gap=56, shot_w=1120, shot_gap=96, min_shot_top=740, radius=96, fit_margin=70)
+OPTS = dict(head=124, sub=56, top=180, icon=150, gap=56, shot_w=1080, shot_gap=110, min_shot_top=760, radius=96, fit_margin=80, corner_off=34, corner_len=86, corner_w=10)
 
 if __name__ == "__main__":
     common.run(sys.argv, W, H, OPTS, "iPhone 6.9 inch")
